@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF 발송 시스템 · 관리자 콘솔 프로토타입 (#154865)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SF Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    html, body { font-family: 'Pretendard', system-ui, sans-serif; }
+
+    /* ─── 테마 변수 (기본 = 오로라 다크) ─── */
+    :root {
+      --bg: #020617;
+      --bg-elev: #0f172a;     /* 사이드바·헤더 */
+      --card: #0f172a;        /* 카드 배경 */
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.15);
+      --text: #f1f5f9;
+      --text-strong: #ffffff;
+      --text-muted: #94a3b8;
+      --aurora-1: rgba(139,92,246,0.35);
+      --aurora-2: rgba(16,185,129,0.15);
+      --aurora-opacity: 0.08;
+      --accent: #a855f7;
+      --accent-soft: rgba(139,92,246,0.45);
+      --scrollbar-thumb: rgba(139,92,246,0.25);
+      --scrollbar-thumb-hover: rgba(139,92,246,0.45);
+      --selection: rgba(139,92,246,0.45);
+      --selection-text: #ffffff;
+      --transition: all 0.18s ease;
+    }
+    /* 오로라 다크 (기본) */
+    html[data-theme="aurora-dark"] {
+      --bg: #020617; --bg-elev: #020617; --card: #0f172a;
+      --aurora-opacity: 0.08;
+    }
+    /* 미드나잇 — 그라디언트 없음 */
+    html[data-theme="midnight"] {
+      --bg: #000000; --bg-elev: #0a0a0a; --card: #111111;
+      --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.12);
+      --aurora-opacity: 0;
+    }
+    /* 그라파이트 — 뉴트럴 회색 */
+    html[data-theme="graphite"] {
+      --bg: #18181b; --bg-elev: #09090b; --card: #27272a;
+      --border: rgba(255,255,255,0.07); --border-strong: rgba(255,255,255,0.12);
+      --aurora-opacity: 0;
+    }
+    /* 페이퍼 라이트 — 인쇄 미리보기용 */
+    html[data-theme="paper"] {
+      --bg: #fafaf9; --bg-elev: #f5f5f4; --card: #ffffff;
+      --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.18);
+      --text: #1c1917; --text-strong: #0c0a09; --text-muted: #57534e;
+      --aurora-opacity: 0;
+      --scrollbar-thumb: rgba(0,0,0,0.20); --scrollbar-thumb-hover: rgba(0,0,0,0.35);
+      --selection: rgba(99,102,241,0.25); --selection-text: #1e1b4b;
+    }
+    /* 시스템 자동 — OS 따라감 */
+    @media (prefers-color-scheme: light) {
+      html[data-theme="auto"] {
+        --bg: #fafaf9; --bg-elev: #f5f5f4; --card: #ffffff;
+        --border: rgba(0,0,0,0.10); --border-strong: rgba(0,0,0,0.18);
+        --text: #1c1917; --text-strong: #0c0a09; --text-muted: #57534e;
+        --aurora-opacity: 0;
+      }
+    }
+
+    /* ─── 강조 색상 (data-accent) ─── */
+    html[data-accent="purple"]  { --accent: #a855f7; --accent-soft: rgba(139,92,246,0.45); --scrollbar-thumb: rgba(139,92,246,0.25); --scrollbar-thumb-hover: rgba(139,92,246,0.45); --selection: rgba(139,92,246,0.45); }
+    html[data-accent="cyan"]    { --accent: #06b6d4; --accent-soft: rgba(6,182,212,0.45);  --scrollbar-thumb: rgba(6,182,212,0.30);  --scrollbar-thumb-hover: rgba(6,182,212,0.50);  --selection: rgba(6,182,212,0.45); }
+    html[data-accent="emerald"] { --accent: #10b981; --accent-soft: rgba(16,185,129,0.45); --scrollbar-thumb: rgba(16,185,129,0.30); --scrollbar-thumb-hover: rgba(16,185,129,0.50); --selection: rgba(16,185,129,0.45); }
+    html[data-accent="amber"]   { --accent: #f59e0b; --accent-soft: rgba(245,158,11,0.45); --scrollbar-thumb: rgba(245,158,11,0.30); --scrollbar-thumb-hover: rgba(245,158,11,0.55); --selection: rgba(245,158,11,0.45); }
+    html[data-accent="rose"]    { --accent: #f43f5e; --accent-soft: rgba(244,63,94,0.45);  --scrollbar-thumb: rgba(244,63,94,0.30);  --scrollbar-thumb-hover: rgba(244,63,94,0.55);  --selection: rgba(244,63,94,0.45); }
+    html[data-accent="indigo"]  { --accent: #6366f1; --accent-soft: rgba(99,102,241,0.45); --scrollbar-thumb: rgba(99,102,241,0.30); --scrollbar-thumb-hover: rgba(99,102,241,0.55); --selection: rgba(99,102,241,0.45); }
+
+    /* ─── UI 밀도 (data-density) ─── */
+    html[data-density="compact"]     { --density-scale: 0.92; }
+    html[data-density="comfortable"] { --density-scale: 1.00; }
+    html[data-density="spacious"]    { --density-scale: 1.10; }
+    html[data-density="compact"] body  { font-size: 13.5px; }
+    html[data-density="spacious"] body { font-size: 15.5px; }
+
+    /* ─── 접근성 ─── */
+    html[data-reduce-motion="true"] *, html[data-reduce-motion="true"] *::before, html[data-reduce-motion="true"] *::after {
+      animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+    }
+    html[data-high-contrast="true"] {
+      --border: rgba(255,255,255,0.30); --border-strong: rgba(255,255,255,0.50); --text-muted: #cbd5e1;
+    }
+    html[data-high-contrast="true"][data-theme="paper"] {
+      --border: rgba(0,0,0,0.40); --border-strong: rgba(0,0,0,0.60); --text-muted: #292524;
+    }
+
+    body { background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; transition: background 0.3s ease, color 0.3s ease; }
+    h1, h2, h3 { color: var(--text-strong); }
+    .screen-main-title {
+      color: #000000 !important;
+      font-weight: 900;
+      letter-spacing: 0;
+      -webkit-font-smoothing: auto;
+      text-rendering: geometricPrecision;
+      text-shadow: none;
+    }
+    html[data-theme="paper"] .screen-main-title,
+    html[data-theme="auto"][data-prefers-light="1"] .screen-main-title {
+      color: #0c0a09;
+      text-shadow: none;
+    }
+    @media (prefers-color-scheme: light) {
+      html[data-theme="auto"] .screen-main-title {
+        color: #0c0a09;
+        text-shadow: none;
+      }
+    }
+
+    /* 강조색을 사용하는 Tailwind 클래스 오버라이드 — 핵심 보라 계열만 */
+    .bg-gradient-to-r.from-purple-500.to-pink-500,
+    .bg-gradient-to-br.from-purple-500.to-pink-500 {
+      background-image: linear-gradient(to right, var(--accent), color-mix(in srgb, var(--accent) 70%, #f43f5e 30%)) !important;
+    }
+
+    /* 페이퍼 테마에서 다크 카드/사이드바 톤을 라이트로 반전 */
+    html[data-theme="paper"] .bg-slate-950,
+    html[data-theme="auto"][data-prefers-light="1"] .bg-slate-950 { background-color: #f5f5f4 !important; }
+    html[data-theme="paper"] .bg-slate-900 { background-color: #ffffff !important; color: #1c1917; }
+    html[data-theme="paper"] .border-white\/10 { border-color: rgba(0,0,0,0.10) !important; }
+    html[data-theme="paper"] .border-white\/5  { border-color: rgba(0,0,0,0.06) !important; }
+    html[data-theme="paper"] .text-slate-100,
+    html[data-theme="paper"] .text-slate-50 { color: #1c1917 !important; }
+    html[data-theme="paper"] .text-slate-200 { color: #292524 !important; }
+    html[data-theme="paper"] .text-slate-300 { color: #44403c !important; }
+    html[data-theme="paper"] .text-slate-400 { color: #57534e !important; }
+    html[data-theme="paper"] .text-slate-500 { color: #78716c !important; }
+
+    /* 다크 테마에서 slate-500은 어두운 배경 위에서 가독성이 떨어져 한 단계 밝게 끌어올림 */
+    html:not([data-theme="paper"]):not([data-theme="auto"][data-prefers-light="1"]) .text-slate-500 {
+      color: #94a3b8 !important; /* slate-400 톤 */
+    }
+    html:not([data-theme="paper"]):not([data-theme="auto"][data-prefers-light="1"]) .text-slate-400 {
+      color: #cbd5e1 !important; /* slate-300 톤 */
+    }
+    html:not([data-theme="paper"]):not([data-theme="auto"][data-prefers-light="1"]) .text-slate-700 {
+      color: #64748b !important; /* 구분점도 너무 어두워서 보강 */
+    }
+    html[data-theme="paper"] .bg-white\/5,
+    html[data-theme="paper"] .bg-white\/\[0\.04\],
+    html[data-theme="paper"] .bg-white\/\[0\.03\] { background-color: rgba(0,0,0,0.04) !important; }
+    html[data-theme="paper"] .hover\:bg-white\/5:hover,
+    html[data-theme="paper"] .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.06) !important; }
+    html[data-theme="paper"] .text-white { color: #fafaf9 !important; }
+
+    /* 그라파이트 보강 */
+    html[data-theme="graphite"] .bg-slate-950 { background-color: #09090b !important; }
+    html[data-theme="graphite"] .bg-slate-900 { background-color: #27272a !important; }
+    html[data-theme="graphite"] .bg-slate-800 { background-color: #3f3f46 !important; }
+    html[data-theme="graphite"] .border-white\/10 { border-color: rgba(255,255,255,0.07) !important; }
+
+    /* 미드나잇 보강 */
+    html[data-theme="midnight"] .bg-slate-950 { background-color: #000000 !important; }
+    html[data-theme="midnight"] .bg-slate-900 { background-color: #0a0a0a !important; }
+
+    .aurora { position: fixed; inset: 0; z-index: -10; pointer-events: none; opacity: var(--aurora-opacity); transition: opacity 0.4s ease; }
+    .aurora::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(at 15% 15%, var(--aurora-1), transparent 50%),
+        radial-gradient(at 85% 85%, var(--aurora-2), transparent 50%);
+    }
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 5px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+    ::selection { background: var(--selection); color: var(--selection-text); }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px;
+      background: rgba(255,255,255,0.1); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #ec4899 30%));
+      box-shadow: 0 0 0 3px var(--accent-soft), 0 2px 8px var(--accent-soft);
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .scr { animation: fadeUp 0.32s ease-out; }
+    [data-screen-label] { display: contents; }
+  </style>
+
+  <script>
+    // 테마 부트스트랩 — DOM 페인트 전 적용해서 깜빡임 방지
+    (function() {
+      try {
+        var saved = JSON.parse(localStorage.getItem('app-theme') || '{}');
+        var html = document.documentElement;
+        html.dataset.theme         = saved.theme        || 'aurora-dark';
+        html.dataset.accent        = saved.accent       || 'purple';
+        html.dataset.density       = saved.density      || 'comfortable';
+        html.dataset.reduceMotion  = saved.reduceMotion ? 'true' : 'false';
+        html.dataset.highContrast  = saved.highContrast ? 'true' : 'false';
+      } catch (e) {
+        document.documentElement.dataset.theme = 'aurora-dark';
+        document.documentElement.dataset.accent = 'purple';
+        document.documentElement.dataset.density = 'comfortable';
+      }
+    })();
+
+    // 전역 테마 적용 함수 — ThemeModal에서 호출
+    window.applyTheme = function(opts) {
+      var html = document.documentElement;
+      if (opts.theme)        html.dataset.theme = opts.theme;
+      if (opts.accent)       html.dataset.accent = opts.accent;
+      if (opts.density)      html.dataset.density = opts.density;
+      if (typeof opts.reduceMotion === 'boolean') html.dataset.reduceMotion = String(opts.reduceMotion);
+      if (typeof opts.highContrast === 'boolean') html.dataset.highContrast = String(opts.highContrast);
+      // 영구 저장
+      try {
+        var current = JSON.parse(localStorage.getItem('app-theme') || '{}');
+        Object.assign(current, opts);
+        localStorage.setItem('app-theme', JSON.stringify(current));
+      } catch (e) {}
+    };
+    window.getTheme = function() {
+      try { return JSON.parse(localStorage.getItem('app-theme') || '{}'); } catch (e) { return {}; }
+    };
+  </script>
+</head>
+<body data-screen-label="00 PDF 발송 시스템 프로토타입">
+  <div class="aurora" aria-hidden="true"></div>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="data.js"></script>
+  <script type="text/babel" src="components.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="dashboard.jsx"></script>
+  <script type="text/babel" src="console.jsx"></script>
+  <script type="text/babel" src="history.jsx"></script>
+  <script type="text/babel" src="templates.jsx"></script>
+  <script type="text/babel" src="stats.jsx"></script>
+  <script type="text/babel" src="audit.jsx"></script>
+  <script type="text/babel" src="detail.jsx"></script>
+  <script type="text/babel" src="popovers.jsx"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "brandName": "대진관리㈜",
+      "brandColor": "#446960",
+      "policyMode": "PRIORITY",
+      "showAuditBadges": true,
+      "density": "compact"
+    }/*EDITMODE-END*/;
+
+    function App() {
+      const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const [route, setRoute] = useState({ name: 'dashboard', payload: null });
+      const [notifOpen, setNotifOpen] = useState(false);
+      const [searchOpen, setSearchOpen] = useState(false);
+      const [searchQuery, setSearchQuery] = useState('');
+      const [userMenuOpen, setUserMenuOpen] = useState(false);
+      const [settingsOpen, setSettingsOpen] = useState(false);
+      const [profileOpen, setProfileOpen] = useState(false);
+      const [themeOpen, setThemeOpen] = useState(false);
+      const [helpOpen, setHelpOpen] = useState(false);
+
+      const navigate = (name, payload) => setRoute({ name, payload });
+
+      // Cmd/Ctrl+K to open search
+      useEffect(() => {
+        const onKey = (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            setSearchOpen(true);
+          } else if (e.key === 'Escape') {
+            setSearchOpen(false);
+            setNotifOpen(false);
+          }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, []);
+
+      // Expose navigate to window for demo automation
+      useEffect(() => { window.__navigate = navigate; }, []);
+
+      const navItems = [
+        { key: 'dashboard', label: '대시보드', icon: 'home' },
+        { key: 'console',   label: '발송',     icon: 'send' },
+        { key: 'history',   label: '이력',     icon: 'history' },
+        { key: 'templates', label: '템플릿',   icon: 'template' },
+        { key: 'stats',     label: '통계',     icon: 'chart' },
+        { key: 'audit',     label: '감사 로그', icon: 'shield' },
+      ];
+
+      // Persistent tweak → CSS var
+      useEffect(() => {
+        document.documentElement.style.setProperty('--brand', tweaks.brandColor);
+      }, [tweaks.brandColor]);
+
+      const screenLabelFor = (k) => ({
+        dashboard: '01 대시보드',
+        console: '02 발송 콘솔',
+        history: '03 이력 · 재발송',
+        historyDetail: '03 이력 · 재발송',
+        templates: '04 템플릿 관리',
+        stats: '05 통계 분석',
+        audit: '06 감사 로그',
+        detail: '07 발송 상세',
+      }[k] || k);
+
+      return (
+        <div className="min-h-screen flex">
+          {/* Sidebar */}
+          <aside className="w-60 border-r border-slate-800 bg-slate-950 flex flex-col">
+            <div className="p-5 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-md bg-gradient-to-br from-purple-500 via-pink-500 to-emerald-500 shadow-lg shadow-purple-500/30 flex items-center justify-center text-white font-bold text-sm">
+                  {tweaks.brandName?.[0] || 'P'}
+                </div>
+                <div>
+                  <div className="text-sm font-bold leading-tight text-slate-50">{tweaks.brandName}</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">PDF 발송 관리자</div>
+                </div>
+              </div>
+            </div>
+            <nav className="p-3 flex-1 space-y-0.5">
+              {navItems.map(it => {
+                const active = route.name === it.key || (it.key === 'history' && route.name === 'historyDetail');
+                return (
+                  <button
+                    key={it.key}
+                    onClick={() => navigate(it.key)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition ${active ? 'bg-purple-500/20 text-white border border-purple-500/30 font-medium' : 'text-slate-300 hover:bg-white/5 hover:text-white border border-transparent'}`}
+                  >
+                    <Icon name={it.icon} className="w-4 h-4" />
+                    <span>{it.label}</span>
+                    {it.key === 'history' && (
+                      <span className="ml-auto text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded">2</span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="p-3 border-t border-white/10 relative">
+              <div className="flex items-center gap-2.5 p-2 rounded-md hover:bg-white/5 cursor-pointer" onClick={() => setUserMenuOpen(!userMenuOpen)}>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-slate-900">김</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium truncate text-slate-100">김지선 운영자</div>
+                  <div className="text-[10px] text-slate-400">OPERATOR</div>
+                </div>
+                <Icon name="settings" className={`w-3.5 h-3.5 transition ${userMenuOpen ? 'text-purple-300 rotate-90' : 'text-slate-400'}`} />
+              </div>
+              {userMenuOpen && <UserMenuPopover onClose={() => setUserMenuOpen(false)} onOpenSettings={() => setSettingsOpen(true)} onOpenProfile={() => setProfileOpen(true)} onOpenTheme={() => setThemeOpen(true)} onOpenHelp={() => setHelpOpen(true)} />}
+              <div className="mt-2 px-2 text-[10px] text-slate-400 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Oracle DB 연결 정상
+              </div>
+            </div>
+          </aside>
+
+          {/* Main */}
+          <main className="flex-1 min-w-0">
+            <header className="sticky top-0 z-20 px-7 py-3 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-[13px] text-slate-300">
+                <span>관리자 콘솔</span>
+                <Icon name="chevronRight" className="w-3 h-3 text-slate-500" />
+                <span className="text-slate-50 font-medium">{navItems.find(n => n.key === route.name)?.label || (route.name === 'historyDetail' ? '이력' : '대시보드')}</span>
+                <span className="ml-3 text-[11px] font-mono text-slate-500">v2.1.4 · staging</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <button onClick={() => { setNotifOpen(!notifOpen); setSearchOpen(false); }} className={`p-1.5 rounded-md relative transition ${notifOpen ? 'bg-purple-500/20 text-purple-200' : 'hover:bg-white/5'}`}>
+                    <Icon name="bell" className={`w-4 h-4 ${notifOpen ? 'text-purple-300' : 'text-slate-400'}`} />
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  </button>
+                  {notifOpen && <NotificationsPopover onClose={() => setNotifOpen(false)} onNavigate={navigate} />}
+                </div>
+                <button onClick={() => setSearchOpen(true)} className="p-1.5 px-2.5 rounded-md hover:bg-white/5 flex items-center gap-2 text-xs text-slate-400 border border-white/10">
+                  <Icon name="search" className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">검색…</span>
+                  <kbd className="hidden md:inline px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-slate-500">⌘K</kbd>
+                </button>
+              </div>
+            </header>
+
+            <div className="px-7 py-6 max-w-[1400px] mx-auto">
+              <div data-screen-label={screenLabelFor(route.name)} className="scr" key={route.name + (route.payload?.id || '')}>
+                {route.name === 'dashboard'     && <Dashboard     tweaks={tweaks} onNavigate={navigate} />}
+                {route.name === 'console'       && <DispatchConsole tweaks={tweaks} onNavigate={navigate} />}
+                {route.name === 'history'       && <History       tweaks={tweaks} onNavigate={navigate} initialDetail={null} />}
+                {route.name === 'historyDetail' && <History       tweaks={tweaks} onNavigate={navigate} initialDetail={route.payload} />}
+                {route.name === 'templates'     && <Templates     tweaks={tweaks} onNavigate={navigate} />}
+                {route.name === 'stats'         && <Stats         tweaks={tweaks} onNavigate={navigate} />}
+                {route.name === 'audit'         && <Audit         tweaks={tweaks} onNavigate={navigate} />}
+                {route.name === 'detail'        && <DispatchDetail tweaks={tweaks} onNavigate={navigate} dispatchId={route.payload?.id} />}
+              </div>
+            </div>
+          </main>
+
+          {searchOpen && <CommandSearchModal query={searchQuery} setQuery={setSearchQuery} onClose={() => setSearchOpen(false)} onNavigate={(n, p) => { navigate(n, p); setSearchOpen(false); }} />}
+          {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+          {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} onOpenSettings={() => setSettingsOpen(true)} />}
+          {themeOpen && <ThemeModal onClose={() => setThemeOpen(false)} />}
+          {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
+
+          {/* Tweaks panel */}
+          <TweaksPanel>
+            <TweakSection label="브랜드" />
+            <TweakText label="회사명" value={tweaks.brandName} onChange={(v) => setTweak('brandName', v)} />
+            <TweakColor label="브랜드 색" value={tweaks.brandColor} onChange={(v) => setTweak('brandColor', v)} />
+
+            <TweakSection label="발송 정책 (Engine)" />
+            <TweakRadio
+              label="채널 정책"
+              value={tweaks.policyMode}
+              options={[
+                { value: 'PRIORITY', label: '우선순위 (자동대체)' },
+                { value: 'BROADCAST', label: '동시 발송' },
+              ]}
+              onChange={(v) => setTweak('policyMode', v)}
+            />
+
+            <TweakSection label="UI" />
+            <TweakRadio
+              label="밀도"
+              value={tweaks.density}
+              options={['compact', 'regular', 'comfy']}
+              onChange={(v) => setTweak('density', v)}
+            />
+            <TweakToggle label="감사 배지 표시" value={tweaks.showAuditBadges} onChange={(v) => setTweak('showAuditBadges', v)} />
+          </TweaksPanel>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

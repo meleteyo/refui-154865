@@ -1,0 +1,1494 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고지서·납부확인서 PDF 발송 시스템 — 레퍼런스 UI (#154865)</title>
+  <meta name="description" content="위시켓 #154865 고지서·납부확인서 PDF 생성 및 다채널 발송 관리 시스템 — 클릭 한 번에 검토할 수 있는 레퍼런스 UI" />
+  <meta property="og:title" content="고지서·납부확인서 PDF 발송 시스템 레퍼런스 UI" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="위시켓 #154865 지원용 레퍼런스 UI · 11개 섹션으로 심층 분석한 지원자의 역량·이해도 체험" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'SF Mono', 'Menlo', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+
+  <link rel="stylesheet" href="./styles.css" />
+
+  <style>
+    :root { --project-id: 154865; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #020617;
+      color: #f1f5f9;
+      -webkit-font-smoothing: antialiased;
+    }
+    .aurora-bg { position: fixed; inset: 0; z-index: -10; background: #020617; }
+    .aurora-bg::before {
+      content: ''; position: absolute; inset: 0; opacity: 0.4;
+      background:
+        radial-gradient(at 15% 25%, rgba(139,92,246,0.35), transparent 50%),
+        radial-gradient(at 85% 75%, rgba(16,185,129,0.25), transparent 50%),
+        radial-gradient(at 50% 50%, rgba(236,72,153,0.15), transparent 45%),
+        radial-gradient(at 10% 90%, rgba(34,211,238,0.12), transparent 40%);
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+
+<body data-domain="enterprise">
+  <div class="aurora-bg" aria-hidden="true"></div>
+
+  <!-- ========== HEADER ========== -->
+  <header class="sticky top-0 z-20 backdrop-blur-xl bg-slate-950/70 border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      <a href="#top" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-emerald-500 shadow-lg shadow-purple-500/30"></div>
+        <div class="hidden sm:block">
+          <div class="font-bold text-base leading-tight">PDF 발송 관리 시스템</div>
+          <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+            <span>WISHKET</span>
+            <span class="font-mono text-purple-400">#154865</span>
+          </div>
+        </div>
+      </a>
+      <nav class="hidden lg:flex items-center gap-5 text-sm text-slate-400">
+        <a href="#core" class="hover:text-purple-400 transition">발송플로우</a>
+        <a href="#portfolio" class="hover:text-purple-400 transition">대시보드</a>
+        <a href="#engine" class="hover:text-purple-400 transition">정책엔진</a>
+        <a href="#insights" class="hover:text-purple-400 transition">인사이트</a>
+        <a href="#risks" class="hover:text-purple-400 transition">리스크</a>
+        <a href="#architecture" class="hover:text-purple-400 transition">아키텍처</a>
+        <a href="#timeline" class="hover:text-purple-400 transition">일정</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="cmdk-trigger" class="hidden sm:flex items-center gap-2 text-sm text-slate-400 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span>검색</span>
+          <kbd class="font-mono text-xs px-1.5 py-0.5 rounded bg-white/10 text-slate-300">⌘K</kbd>
+        </button>
+        <!-- TODO: 30분 미팅 예약 기능 활성화 시 복원 (Cal.com URL 확정 후)
+        <a href="#cta" class="rounded-xl px-4 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/30 transition">
+          30분 미팅 예약
+        </a>
+        -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== HERO ========== -->
+  <section id="top" class="relative max-w-7xl mx-auto px-6 pt-16 md:pt-24 pb-10">
+    <div class="max-w-4xl">
+      <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs bg-purple-500/10 border border-purple-500/20 text-purple-300 mb-6">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+        </span>
+        레퍼런스 UI · 제안서 참조용
+      </div>
+      <h1 class="text-5xl md:text-7xl font-bold leading-[1.05] tracking-tight">
+        건당 <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-emerald-400 bg-clip-text text-transparent">7분이 30초</span>로.<br>
+        3채널이 한 화면에.
+      </h1>
+      <p class="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl leading-relaxed">
+        Oracle DB의 고객·결제 데이터로 브랜드 반영 PDF를 자동 생성하고,
+        이메일·웹팩스·카카오 알림톡을 단일 UI로 통합 발송하는 사내 관리자 시스템.
+        <span class="text-purple-300">업무 시간 90% 단축</span>, <span class="text-emerald-300">도달률 98%+</span> 달성.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a href="#core" class="rounded-xl px-5 py-3 font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/30 transition">화면 둘러보기</a>
+        <a href="proto/index.html" class="group inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 hover:bg-emerald-500/25 transition">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          라이브 데모 체험하기
+          <span class="text-xs opacity-60 group-hover:opacity-100 transition">관리자 콘솔 클릭 가능 →</span>
+        </a>
+        <a href="proto/demo/자동시연.html" class="group inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/25 transition">
+          <i data-lucide="video" class="w-4 h-4"></i>
+          1분 30초 자동 시연
+          <span class="text-xs opacity-60 group-hover:opacity-100 transition">캡션 + 자동 순환 →</span>
+        </a>
+        <!-- TODO: 30분 미팅 예약 기능 활성화 시 복원
+        <a href="#cta" class="rounded-xl px-5 py-3 font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition">30분 미팅 예약</a>
+        -->
+        <a href="#insights" class="rounded-xl px-5 py-3 text-sm text-slate-300 hover:text-purple-400 transition">이 프로젝트의 숨은 이슈 →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HERO INSIGHTS (Top 3 확인사항) ========== -->
+  <section id="hero-insights" class="max-w-7xl mx-auto px-6 py-10 md:py-16">
+    <div class="mb-8">
+      <h2 class="text-2xl md:text-3xl font-bold">이 프로젝트를 이렇게 이해했습니다</h2>
+      <p class="mt-2 text-slate-400">공고를 11개 섹션으로 분해·분석하여 도출한 핵심 3가지 (→ 요구사항 검토서 §11)</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] hover:-translate-y-1">
+        <div class="text-xs text-purple-400 font-mono mb-2">INSIGHT 1 · 아키텍처 핵심</div>
+        <h3 class="text-xl font-semibold mb-3">Oracle DB 접근 방식이 전체를 결정합니다</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">사내 상주/VPN/파일 전달 중 무엇인가에 따라 배포 환경·일정·비용이 30% 이상 달라집니다. Q1이 아키텍처의 첫 결정점.</p>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] hover:-translate-y-1">
+        <div class="text-xs text-emerald-400 font-mono mb-2">INSIGHT 2 · 성능·인프라</div>
+        <h3 class="text-xl font-semibold mb-3">발송 규모와 "즉시"의 정의</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">일·월 예상 건수, 단건/다건 선택, 동기/비동기 기대치가 성능·인프라의 기반 가정. Redis Queue + Worker 비동기 구조를 권장.</p>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all hover:scale-[1.02] hover:-translate-y-1">
+        <div class="text-xs text-pink-400 font-mono mb-2">INSIGHT 3 · 일정 블로커</div>
+        <h3 class="text-xl font-semibold mb-3">알림톡 심사 2주는 단축 불가</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">발신 프로필 유무에 따라 심사 2주+α. W01 Day 1 병행 신청이 유일한 해법. 알리고·솔라피 이중 계약 권장.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CORE — 원클릭 발송 플로우 ========== -->
+  <section id="core" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      <div>
+        <div class="text-xs font-mono text-purple-400 mb-3">01 · CORE</div>
+        <h2 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
+          원클릭 발송 플로우
+        </h2>
+        <p class="text-lg text-slate-300 mb-6 leading-relaxed">
+          Oracle DB 조회 → PDF 생성 → 3채널 선택 → 발송까지 한 화면에서. 담당자는 체크박스와 버튼만 누르면 됩니다.
+        </p>
+        <ul class="space-y-3 text-slate-300">
+          <li class="flex items-start gap-3">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+            <span>필터(기간·상태·고객)만 선택하면 Oracle에서 대상 자동 조회</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+            <span>템플릿 선택 + 미리보기 후 대량 PDF 생성 (단건~수천 건)</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+            <span>우선순위 정책으로 알림톡→이메일→팩스 자동 대체 발송</span>
+          </li>
+          <li class="flex items-start gap-3">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0"></i>
+            <span>실시간 진행률 + 건별 성공·실패 이력 즉시 확인·재발송</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Dispatch preview -->
+      <div class="rounded-3xl backdrop-blur-3xl bg-slate-900/80 border border-white/10 shadow-2xl shadow-purple-500/20 overflow-hidden">
+        <div class="flex items-center gap-3 p-4 border-b border-white/10 bg-white/5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+            <i data-lucide="send" class="w-4 h-4 text-white"></i>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">발송 콘솔 · 2026-04-25</div>
+            <div class="text-xs text-emerald-400 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Oracle 연결 · Ready
+            </div>
+          </div>
+          <span class="text-xs font-mono text-slate-400">J-20260425-023</span>
+        </div>
+        <div class="p-6 space-y-3 min-h-[340px]">
+          <div class="rounded-xl p-3 bg-white/5 border border-white/10 flex items-center gap-3">
+            <div class="w-6 h-6 rounded bg-purple-500/30 flex items-center justify-center text-xs font-bold">1</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">기간·상태로 대상 조회</div>
+              <div class="text-xs text-slate-400 mt-0.5">2026-04 · 미납 125건 검색 완료 (Oracle readonly)</div>
+            </div>
+            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="rounded-xl p-3 bg-white/5 border border-white/10 flex items-center gap-3">
+            <div class="w-6 h-6 rounded bg-purple-500/30 flex items-center justify-center text-xs font-bold">2</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">템플릿 선택 + 42건 PDF 생성</div>
+              <div class="text-xs text-slate-400 mt-0.5">납부확인서 표준형 v2.1 · OpenHTMLtoPDF · Noto Sans KR 임베딩</div>
+            </div>
+            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div class="rounded-xl p-3 bg-purple-500/10 border border-purple-500/30 flex items-center gap-3">
+            <div class="w-6 h-6 rounded bg-purple-500 flex items-center justify-center text-xs font-bold">3</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">채널 발송 진행 중</div>
+              <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500" style="width: 62%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-xs">
+                <span class="text-slate-400">알림톡 22/28 · 이메일 4/14</span>
+                <span class="text-purple-300 font-semibold">62%</span>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl p-3 bg-white/5 border border-white/10 flex items-center gap-3 opacity-60">
+            <div class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-xs font-bold">4</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">결과 집계 + 이력 저장 + 감사 로그</div>
+              <div class="text-xs text-slate-400 mt-0.5">PostgreSQL dispatch_records + audit_logs</div>
+            </div>
+            <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
+          </div>
+        </div>
+        <div class="p-4 border-t border-white/10 bg-white/5 text-xs text-slate-400 flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          AuditLog 자동 기록 · PDF immutable · 5년+ 보관
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PORTFOLIO — 발송 대시보드 ========== -->
+  <section id="portfolio" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="text-xs font-mono text-emerald-400 mb-3">02 · DASHBOARD</div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">통합 발송 대시보드</h2>
+      <p class="mt-3 text-lg text-slate-300">발송 현황·트렌드·채널별 성과를 한 화면에</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
+      <div class="col-span-2 md:col-span-2 md:row-span-2 rounded-3xl p-8 backdrop-blur-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-purple-500/10 blur-3xl"></div>
+        <div class="relative">
+          <div class="text-sm text-slate-400 mb-2">금일 발송 완료</div>
+          <div class="text-5xl md:text-6xl font-bold leading-none">
+            <span data-countup="247">0</span><span class="text-3xl text-slate-400 ml-2">건</span>
+          </div>
+          <div class="mt-4 flex items-center gap-2 text-emerald-400">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span class="font-semibold">+21.7%</span>
+            <span class="text-slate-400 text-sm">어제 대비</span>
+          </div>
+          <div class="mt-6 flex items-center gap-3">
+            <div class="text-xs">
+              <div class="text-slate-400">성공</div>
+              <div class="text-lg font-semibold text-emerald-300"><span data-countup="244">0</span></div>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div class="text-xs">
+              <div class="text-slate-400">실패</div>
+              <div class="text-lg font-semibold text-red-300"><span data-countup="3">0</span></div>
+            </div>
+            <div class="w-px h-8 bg-white/10"></div>
+            <div class="text-xs">
+              <div class="text-slate-400">성공률</div>
+              <div class="text-lg font-semibold"><span data-countup-decimal="98.8">0</span>%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="text-xs text-slate-400 mb-1">주간 발송</div>
+        <div class="text-2xl font-bold text-emerald-400">
+          <span data-countup="1179">0</span><span class="text-base">건</span>
+        </div>
+        <div class="mt-3 h-8"><canvas id="sparkline-today" class="w-full h-full"></canvas></div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="text-xs text-slate-400 mb-1">평균 처리시간</div>
+        <div class="text-2xl font-bold text-emerald-400">
+          <span data-countup-decimal="28.4">0</span>초<span class="text-base"> /건</span>
+        </div>
+        <div class="mt-1 text-xs text-slate-500">수작업 대비 <span class="text-purple-300">-92%</span></div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="text-xs text-slate-400 mb-1">월 도달률</div>
+        <div class="flex items-baseline gap-2">
+          <div class="text-2xl font-bold"><span data-countup-decimal="98.2">0</span><span class="text-base">%</span></div>
+        </div>
+        <div class="mt-2 inline-flex items-center gap-1.5 text-xs rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-400">
+          <span>자동대체 +2.1%</span>
+        </div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="text-xs text-slate-400 mb-1">알림톡 잔여</div>
+        <div class="text-2xl font-bold text-cyan-400">₩<span data-countup="12500">0</span></div>
+        <div class="mt-1 text-xs text-amber-400 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i>충전 권장</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+      <div class="lg:col-span-2 rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold">7일 발송 추이</h3>
+          <div class="flex items-center gap-1 text-xs">
+            <button class="px-2 py-1 rounded bg-purple-500/20 text-purple-300">7D</button>
+            <button class="px-2 py-1 rounded text-slate-500 hover:bg-white/5">30D</button>
+            <button class="px-2 py-1 rounded text-slate-500 hover:bg-white/5">90D</button>
+            <button class="px-2 py-1 rounded text-slate-500 hover:bg-white/5">ALL</button>
+          </div>
+        </div>
+        <div class="h-64"><canvas id="chart-trend"></canvas></div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <h3 class="font-semibold mb-4">채널 비중 (오늘)</h3>
+        <div class="h-64 flex items-center justify-center"><canvas id="chart-allocation"></canvas></div>
+      </div>
+    </div>
+
+    <div class="mt-6 rounded-2xl backdrop-blur-3xl bg-white/5 border border-white/10 overflow-hidden">
+      <div class="flex items-center justify-between p-6 border-b border-white/10">
+        <h3 class="font-semibold">최근 발송 이력</h3>
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          데모 데이터
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-xs text-slate-400 border-b border-white/5">
+              <th class="px-6 py-3">일시</th>
+              <th class="px-4 py-3">고객</th>
+              <th class="px-4 py-3">문서</th>
+              <th class="px-4 py-3">채널</th>
+              <th class="px-4 py-3 text-right">상태</th>
+              <th class="px-4 py-3 text-right">도달</th>
+              <th class="px-4 py-3 text-right">액션</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            <tr class="hover:bg-white/5 transition">
+              <td class="px-6 py-3 text-xs text-slate-400">14:23:15</td>
+              <td class="px-4 py-3">이영희 <span class="text-slate-500 font-mono text-xs">C-00144</span></td>
+              <td class="px-4 py-3">납부확인서</td>
+              <td class="px-4 py-3"><span class="rounded-full px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs">알림톡</span></td>
+              <td class="px-4 py-3 text-right"><span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs">✓ 성공</span></td>
+              <td class="px-4 py-3 text-right text-xs text-emerald-400">14:23:16</td>
+              <td class="px-4 py-3 text-right"><button class="text-xs text-purple-400 hover:text-purple-300">재발송</button></td>
+            </tr>
+            <tr class="hover:bg-white/5 transition">
+              <td class="px-6 py-3 text-xs text-slate-400">14:22:58</td>
+              <td class="px-4 py-3">김철수 <span class="text-slate-500 font-mono text-xs">C-00143</span></td>
+              <td class="px-4 py-3">고지서</td>
+              <td class="px-4 py-3"><span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs">이메일</span></td>
+              <td class="px-4 py-3 text-right"><span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs">✓ 성공</span></td>
+              <td class="px-4 py-3 text-right text-xs text-emerald-400">14:23:01</td>
+              <td class="px-4 py-3 text-right"><button class="text-xs text-purple-400 hover:text-purple-300">재발송</button></td>
+            </tr>
+            <tr class="hover:bg-white/5 transition">
+              <td class="px-6 py-3 text-xs text-slate-400">14:20:42</td>
+              <td class="px-4 py-3">박민수 <span class="text-slate-500 font-mono text-xs">C-00142</span></td>
+              <td class="px-4 py-3">고지서</td>
+              <td class="px-4 py-3"><span class="rounded-full px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-xs">웹팩스</span></td>
+              <td class="px-4 py-3 text-right"><span class="rounded-full px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">✗ 실패</span></td>
+              <td class="px-4 py-3 text-right text-xs text-red-400">팩스번호 없음</td>
+              <td class="px-4 py-3 text-right"><button class="text-xs text-purple-400 hover:text-purple-300">채널변경</button></td>
+            </tr>
+            <tr class="hover:bg-white/5 transition bg-amber-500/5">
+              <td class="px-6 py-3 text-xs text-slate-400">14:20:45</td>
+              <td class="px-4 py-3">박민수 <span class="text-slate-500 font-mono text-xs">C-00142</span></td>
+              <td class="px-4 py-3">고지서</td>
+              <td class="px-4 py-3">
+                <span class="rounded-full px-2 py-0.5 bg-amber-500/20 text-amber-300 text-xs">자동대체</span>
+                <span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs ml-1">이메일</span>
+              </td>
+              <td class="px-4 py-3 text-right"><span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs">✓ 성공</span></td>
+              <td class="px-4 py-3 text-right text-xs text-emerald-400">14:20:48</td>
+              <td class="px-4 py-3 text-right text-xs text-slate-500">자동처리</td>
+            </tr>
+            <tr class="hover:bg-white/5 transition">
+              <td class="px-6 py-3 text-xs text-slate-400">14:18:03</td>
+              <td class="px-4 py-3">정수민 <span class="text-slate-500 font-mono text-xs">C-00141</span></td>
+              <td class="px-4 py-3">납부확인서</td>
+              <td class="px-4 py-3"><span class="rounded-full px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs">알림톡</span></td>
+              <td class="px-4 py-3 text-right"><span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs">✓ 성공</span></td>
+              <td class="px-4 py-3 text-right text-xs text-emerald-400">14:18:04</td>
+              <td class="px-4 py-3 text-right"><button class="text-xs text-purple-400 hover:text-purple-300">재발송</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ENGINE — 발송 정책 엔진 ========== -->
+  <section id="engine" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="text-xs font-mono text-pink-400 mb-3">03 · ENGINE</div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">발송 정책 엔진</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        채널 우선순위·자동 대체·재시도를 정책으로 관리 · 왜 이 채널이 선택됐는지 설명 포함
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="rounded-2xl p-8 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="text-xs text-slate-400">정책 성능 · 7일 집계</div>
+            <div class="flex items-baseline gap-3 mt-1">
+              <div class="text-5xl font-bold">98</div>
+              <div class="text-sm text-slate-500">/ 100</div>
+              <div class="rounded-full px-3 py-1 bg-emerald-500/20 text-emerald-400 text-sm font-semibold">Grade A+</div>
+            </div>
+          </div>
+          <div class="text-xs text-slate-400 text-right">
+            policy v1.2<br>
+            <span class="font-mono text-purple-400">explainable</span>
+          </div>
+        </div>
+        <div class="h-80"><canvas id="chart-radar"></canvas></div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="rounded-xl p-4 bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i>
+              <span class="font-semibold text-sm">도달률</span>
+            </div>
+            <span class="text-lg font-bold text-emerald-400">98%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400" style="width:98%"></div></div>
+          <p class="text-xs text-slate-400 mt-2">자동 대체 채널 적용 시 기본 90% → 98%</p>
+        </div>
+        <div class="rounded-xl p-4 bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-pink-400"></i>
+              <span class="font-semibold text-sm">응답 속도</span>
+            </div>
+            <span class="text-lg font-bold text-emerald-400">96%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-gradient-to-r from-purple-500 to-pink-500" style="width:96%"></div></div>
+          <p class="text-xs text-slate-400 mt-2">평균 2.3초/건 · p95 4.8초 (외부 API 지연 포함)</p>
+        </div>
+        <div class="rounded-xl p-4 bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="dollar-sign" class="w-4 h-4 text-cyan-400"></i>
+              <span class="font-semibold text-sm">비용 효율</span>
+            </div>
+            <span class="text-lg font-bold text-emerald-400">91%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-gradient-to-r from-cyan-500 to-cyan-400" style="width:91%"></div></div>
+          <p class="text-xs text-slate-400 mt-2">알림톡 우선으로 팩스 비용 75% 절감</p>
+        </div>
+        <div class="rounded-xl p-4 bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="user-check" class="w-4 h-4 text-amber-400"></i>
+              <span class="font-semibold text-sm">수신인 매칭</span>
+            </div>
+            <span class="text-lg font-bold text-amber-400">72%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-gradient-to-r from-amber-500 to-orange-400" style="width:72%"></div></div>
+          <p class="text-xs text-slate-400 mt-2">일부 고객 휴대폰·팩스번호 누락 — Oracle DB 보강 필요</p>
+        </div>
+        <div class="rounded-xl p-4 bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i>
+              <span class="font-semibold text-sm">재발송 성공률</span>
+            </div>
+            <span class="text-lg font-bold text-emerald-400">88%</span>
+          </div>
+          <div class="h-1.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400" style="width:88%"></div></div>
+          <p class="text-xs text-slate-400 mt-2">채널 변경 재발송 시 성공률 현저히 개선</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Policy flow -->
+    <div class="mt-6 rounded-2xl p-6 backdrop-blur-3xl bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20">
+      <div class="flex items-start gap-4">
+        <div class="p-2.5 rounded-xl bg-purple-500/20">
+          <i data-lucide="lightbulb" class="w-5 h-5 text-purple-300"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-semibold mb-2">이번 발송(J-20260425-023)의 엔진 해설</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <div class="rounded-lg p-3 bg-white/5 border border-white/10">
+              <div class="text-xs text-purple-400 font-mono mb-1">STEP 1</div>
+              <div class="text-sm font-semibold mb-1">알림톡 28건 선택</div>
+              <p class="text-xs text-slate-400">휴대폰 보유 고객 중 비용·도달 최적 채널</p>
+            </div>
+            <div class="rounded-lg p-3 bg-white/5 border border-white/10">
+              <div class="text-xs text-emerald-400 font-mono mb-1">STEP 2</div>
+              <div class="text-sm font-semibold mb-1">이메일 14건 선택</div>
+              <p class="text-xs text-slate-400">휴대폰 미보유 or 알림톡 실패 예상 고객</p>
+            </div>
+            <div class="rounded-lg p-3 bg-white/5 border border-white/10">
+              <div class="text-xs text-amber-400 font-mono mb-1">FALLBACK</div>
+              <div class="text-sm font-semibold mb-1">팩스 6건 대기</div>
+              <p class="text-xs text-slate-400">위 2채널 실패 시 자동 발송</p>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-amber-400 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+            정책은 관리자가 언제든 조정 가능. 본 예시는 "비용 우선" 프리셋 기준.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== OPERATOR — 관리자 패널 ========== -->
+  <section id="operator" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="text-xs font-mono text-cyan-400 mb-3">04 · OPERATOR</div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">관리자 운영 패널</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        사용자·템플릿·감사 로그·API 설정 · 6개월 후에도 문제없이 운영 가능하도록 설계
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-400 text-xs mb-2"><i data-lucide="users" class="w-3.5 h-3.5"></i>관리자 계정</div>
+        <div class="text-3xl font-bold"><span data-countup="12">0</span></div>
+        <div class="text-xs text-emerald-400 mt-1">OPERATOR 10 · ADMIN 2</div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-400 text-xs mb-2"><i data-lucide="database" class="w-3.5 h-3.5"></i>PDF 누적</div>
+        <div class="text-3xl font-bold"><span data-countup="8247">0</span></div>
+        <div class="text-xs text-slate-500 mt-1">S3 스토리지 4.2GB</div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-400 text-xs mb-2"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>활성 템플릿</div>
+        <div class="text-3xl font-bold"><span data-countup="4">0</span></div>
+        <div class="text-xs text-slate-500 mt-1">고지서 2 · 납부확인서 2</div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-400 text-xs mb-2"><i data-lucide="activity" class="w-3.5 h-3.5"></i>API 에러율</div>
+        <div class="text-3xl font-bold text-emerald-400"><span data-countup-decimal="0.3">0</span>%</div>
+        <div class="text-xs text-slate-500 mt-1">지난 24시간</div>
+      </div>
+    </div>
+
+    <!-- Cost Simulator -->
+    <div class="rounded-2xl p-8 backdrop-blur-3xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2.5 rounded-xl bg-cyan-500/20">
+          <i data-lucide="calculator" class="w-5 h-5 text-cyan-300"></i>
+        </div>
+        <div>
+          <h3 class="font-semibold text-lg">월 발송 비용 시뮬레이터</h3>
+          <p class="text-sm text-slate-400">알림톡과 팩스 건수를 조정해 월 API 비용을 예측합니다 (알림톡 8원/건 · 팩스 80원/건)</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="text-sm text-slate-400 mb-2 block">알림톡 발송 건수/월 (₩8/건)</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="mrr-pro" min="0" max="30000" value="4200" class="flex-1" />
+            <span id="mrr-pro-display" class="font-mono text-sm w-20 text-right">4,200</span>
+          </div>
+          <label class="text-sm text-slate-400 mb-2 mt-4 block">웹팩스 발송 건수/월 (₩80/건)</label>
+          <div class="flex items-center gap-3">
+            <input type="range" id="mrr-free" min="0" max="5000" value="800" class="flex-1" />
+            <span id="mrr-free-display" class="font-mono text-sm w-20 text-right">800</span>
+          </div>
+        </div>
+        <div class="flex flex-col justify-center text-right">
+          <div class="text-sm text-slate-400">월 외부 API 비용</div>
+          <div class="text-5xl font-bold text-cyan-300 my-2">₩<span id="mrr-result">97,600</span></div>
+          <div class="text-sm text-slate-500">연 환산 ₩<span id="mrr-yearly">1,171,200</span></div>
+          <div class="text-xs text-slate-500 mt-2">※ 이메일(AWS SES)은 10,000건/월 무료</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin features grid -->
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="rounded-2xl p-5 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-300 mb-3">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+          <span class="font-semibold text-sm">감사 로그</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">관리자 행위 100% 기록 · append-only · 5년+ 보관</p>
+        <div class="text-xs font-mono text-slate-500 space-y-1">
+          <div>LOGIN · kim@co · 14:23</div>
+          <div>DISPATCH · J-023 (42건) · 14:24</div>
+          <div>RESEND · DR-3981 → 4521 · 14:31</div>
+        </div>
+      </div>
+      <div class="rounded-2xl p-5 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-300 mb-3">
+          <i data-lucide="palette" class="w-4 h-4 text-pink-400"></i>
+          <span class="font-semibold text-sm">템플릿 관리</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">로고·브랜드색·문구 변경 · 버전 관리 · 미리보기</p>
+        <div class="flex gap-1 mt-2">
+          <div class="flex-1 h-8 rounded bg-gradient-to-br from-purple-500 to-pink-500 text-[10px] flex items-center justify-center font-mono">v2.1</div>
+          <div class="flex-1 h-8 rounded bg-white/10 text-[10px] flex items-center justify-center text-slate-400">v2.0</div>
+          <div class="flex-1 h-8 rounded bg-white/10 text-[10px] flex items-center justify-center text-slate-400">v1.9</div>
+        </div>
+      </div>
+      <div class="rounded-2xl p-5 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center gap-2 text-slate-300 mb-3">
+          <i data-lucide="key" class="w-4 h-4 text-amber-400"></i>
+          <span class="font-semibold text-sm">채널 설정</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">API 키 암호화 저장(Vault) · 발신 프로필 · 대행사 교체</p>
+        <div class="space-y-1 text-xs font-mono text-slate-500">
+          <div>SES · ses_****4f2a ✓</div>
+          <div>FAX · bizfax_****9c21 ✓</div>
+          <div>KAKAO · aligo_****8d17 ✓</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== INSIGHTS (경쟁자 없음) ========== -->
+  <section id="insights" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 text-xs font-mono text-amber-400 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+        05 · INSIGHTS
+        <span class="rounded-full px-2 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-semibold">경쟁자에 없는 섹션</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">우리가 발견한 숨은 이슈들</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        공고를 11개 섹션으로 분해 분석한 결과 · 다른 16명 지원자가 놓쳤을 가능성이 있는 부분
+      </p>
+    </div>
+
+    <div class="mb-10">
+      <h3 class="font-semibold mb-4 flex items-center gap-2">
+        <i data-lucide="help-circle" class="w-5 h-5 text-amber-400"></i>
+        모호한 요구사항 Top 3 (→ 요구사항 검토서 §7)
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+          <div class="text-xs font-mono text-amber-400 mb-2">AM-03 · 확률 3 × 영향 3</div>
+          <h4 class="font-semibold mb-2">Oracle DB 접근 방식</h4>
+          <p class="text-xs text-slate-400 mb-3">사내망 직접 / VPN 원격 / 파일 전달 중 미정</p>
+          <div class="rounded-lg p-2 bg-amber-500/10 text-xs text-amber-300">아키텍처 30% 변동 요인</div>
+        </div>
+        <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+          <div class="text-xs font-mono text-amber-400 mb-2">AM-01/02 · 확률 3 × 영향 2</div>
+          <h4 class="font-semibold mb-2">"수동 선택·즉시 발송"</h4>
+          <p class="text-xs text-slate-400 mb-3">단건/다건/대량 · 동기/비동기 해석 가능</p>
+          <div class="rounded-lg p-2 bg-amber-500/10 text-xs text-amber-300">큐·진행률 UI 필요성 결정</div>
+        </div>
+        <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+          <div class="text-xs font-mono text-amber-400 mb-2">AM-07/08 · 확률 2 × 영향 3</div>
+          <h4 class="font-semibold mb-2">발송 규모·배포 환경</h4>
+          <p class="text-xs text-slate-400 mb-3">월 수백/수만 건 · 온프레미스/클라우드 미정</p>
+          <div class="rounded-lg p-2 bg-amber-500/10 text-xs text-amber-300">인프라 비용 월 50만원+ 차이</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h3 class="font-semibold mb-4 flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-400"></i>
+        누락 가능 요구사항 (→ 요구사항 검토서 §8)
+      </h3>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex flex-wrap gap-3">
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>관리자 계정·권한 관리 UI</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>대량(일괄) PDF 생성·발송</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>예약 발송</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>실패 건 재발송</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>템플릿 관리 UI</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>이메일 바운스·수신거부</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>알림톡 발신 프로필 관리</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>감사 로그</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>엑셀 내보내기</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>성능·SLA 기준</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>PDF 암호화·보관기간</span>
+          <span class="rounded-full px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-1.5"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i>개인정보 암호화 수준</span>
+        </div>
+        <p class="mt-4 text-xs text-slate-500">
+          ℹ 이 항목들은 공고 원문에 명시되지 않았지만, 실제 운영 시 반드시 합의가 필요합니다. 질의서 40문항으로 체계화했습니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== QUESTIONS ========== -->
+  <section id="questions" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 text-xs font-mono text-purple-400 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+        06 · QUESTIONS
+        <span class="rounded-full px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-semibold">경쟁자에 없는 섹션</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">고객님께 꼭 여쭙고 싶은 10가지</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        이 질문들의 답이 프로젝트 성공률을 결정합니다 · 30분 미팅에서 함께 정리해요
+      </p>
+    </div>
+
+    <div class="rounded-2xl backdrop-blur-3xl bg-white/5 border border-white/10 overflow-hidden" id="questions-accordion">
+      <details class="accordion-item" open>
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q1</span>Oracle DB에 어떻게 접근하게 되나요? (상주 / VPN / 파일 전달)</summary>
+        <div class="accordion-body">
+          <p><strong class="text-purple-300">왜 중요한가</strong>: 이 답이 아키텍처·배포·일정·비용을 모두 결정합니다. 가장 먼저 확인해야 할 질문.</p>
+          <p class="mt-2"><strong class="text-emerald-300">선택지</strong>: A 사내 상주 · B VPN 원격 · C 스테이징 DB 제공 · D CSV/Dump 파일 전달</p>
+          <p class="mt-2"><strong class="text-amber-300">개발자 권장</strong>: B (VPN) — 원격 개발 가능 + 운영 안정성 확보</p>
+          <p class="mt-2"><strong class="text-slate-400">영향</strong>: 답변 지연 시 Phase 1 최대 4주 지연 가능</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q2</span>"수동 선택"은 단건인가, 묶음인가, 대량인가?</summary>
+        <div class="accordion-body">
+          <p>체크박스 다중 선택 또는 필터 기반 일괄이면 <strong>비동기 큐 + 진행률 UI</strong> 필수. 선택지: A 단건만 / B ~50건 / C ~수천 건</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q3</span>일·월 발송 예상 규모는? (수백 / 수천 / 수만)</summary>
+        <div class="accordion-body">
+          <p>1만 건/일 이상이면 <strong>수평 확장 아키텍처</strong>(Worker Pool + Redis Cluster) 필수. 인프라 월 비용 15만원 → 50만원+ 변동.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q4</span>"즉시 발송"의 SLA? (몇 초 vs 몇 분)</summary>
+        <div class="accordion-body">
+          <p>동기 API(<3s)는 외부 API 지연 시 타임아웃 리스크. <strong>비동기 큐 + 진행률 UI</strong> 권장.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q5</span>배포 환경은 사내 온프레미스인가 클라우드인가?</summary>
+        <div class="accordion-body">
+          <p>온프레미스는 설치·운영 문서 2~3주 추가, 클라우드는 IaC로 자동화 가능. 사내 정책 확인 필요.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q6</span>카카오 비즈채널 보유 여부? (심사 1~2주)</summary>
+        <div class="accordion-body">
+          <p>미보유 시 <strong>카카오 심사 1~2주 대기</strong>. 발신 프로필 + 템플릿 사전 승인 필수. W01 Day 1 병행 신청해야 일정 안정.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q7</span>웹팩스 업체 지정? (엔팩스·비즈팩스·인터팩스)</summary>
+        <div class="accordion-body">
+          <p>업체별 API 상이 (REST vs SOAP). 선정 전까지는 ChannelPort 추상화로 대기, 결정 후 1~3일 내 통합.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q8</span>이메일 발송 방식? (사내 SMTP vs AWS SES)</summary>
+        <div class="accordion-body">
+          <p>AWS SES 권장 — 바운스·수신거부 자동 처리, 월 무료 10,000건, SPF/DKIM 검증 표준 지원.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q9</span>외부 API 사용료(알림톡·팩스·이메일) 부담 주체는?</summary>
+        <div class="accordion-body">
+          <p><strong>예산 책정 핵심</strong>: 클라이언트 계약 / 개발자 정산 / 1,500만원에 포함 중 선택. 포함 시 개발비 실질 -300~500만원.</p>
+        </div>
+      </details>
+      <details class="accordion-item">
+        <summary class="font-semibold"><span class="text-red-400 font-mono text-sm mr-2">🔴 Q10</span>관리자 권한을 나눠야 하나요? (1종 / 2종 / 3종+)</summary>
+        <div class="accordion-body">
+          <p>RBAC 구성에 따라 권한 화면 3~5일 추가 공수. 1종으로 시작 후 2차에서 세분화하는 것이 경제적.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="mt-6 text-center">
+      <a href="#cta" class="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 transition border border-purple-500/30">
+        이 질문들을 함께 답해봐요
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== RISKS ========== -->
+  <section id="risks" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 text-xs font-mono text-red-400 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span>
+        07 · RISKS
+        <span class="rounded-full px-2 py-0.5 bg-red-500/20 text-red-300 text-[10px] font-semibold">경쟁자에 없는 섹션</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">이미 식별한 15개 리스크</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        미리 알아야 미리 막을 수 있습니다 · 각 리스크마다 대응 전략 준비 완료
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div class="lg:col-span-3 rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold">확률 × 영향 매트릭스</h3>
+          <div class="flex items-center gap-3 text-xs text-slate-400">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span>치명</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>중</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-500"></span>낮음</span>
+          </div>
+        </div>
+        <div class="relative h-80"><canvas id="chart-risks"></canvas></div>
+        <p class="mt-2 text-xs text-slate-500 text-center">각 점을 클릭하면 상세 대응 전략이 표시됩니다</p>
+      </div>
+
+      <div class="lg:col-span-2 space-y-3">
+        <h3 class="font-semibold mb-3">Top 5 집중 대응</h3>
+        <div class="rounded-xl p-3 bg-red-500/10 border border-red-500/30">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-xs text-red-400">R1 · 9/9</span>
+            <span class="text-xs text-slate-400">범위·환경</span>
+          </div>
+          <div class="font-semibold text-sm">Oracle DB 접근 방식 미확정</div>
+          <p class="text-xs text-slate-400 mt-1">Q1 최우선 확정. VPN/파일 전달 중간 옵션 제안.</p>
+        </div>
+        <div class="rounded-xl p-3 bg-red-500/10 border border-red-500/30">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-xs text-red-400">R2 · 9/9</span>
+            <span class="text-xs text-slate-400">일정·외부</span>
+          </div>
+          <div class="font-semibold text-sm">알림톡 심사 지연/탈락</div>
+          <p class="text-xs text-slate-400 mt-1">W01 Day1 신청. 알리고+솔라피 이중 계약.</p>
+        </div>
+        <div class="rounded-xl p-3 bg-red-500/10 border border-red-500/30">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-xs text-red-400">R5 · 9/9</span>
+            <span class="text-xs text-slate-400">비용·커뮤</span>
+          </div>
+          <div class="font-semibold text-sm">예산 범위 확장 누적</div>
+          <p class="text-xs text-slate-400 mt-1">Core/Optional/OOS 3단 합의. 변경 영향도 시트.</p>
+        </div>
+        <div class="rounded-xl p-3 bg-amber-500/10 border border-amber-500/30">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-xs text-amber-400">R6 · 6/9</span>
+            <span class="text-xs text-slate-400">커뮤</span>
+          </div>
+          <div class="font-semibold text-sm">첫 프로젝트 클라이언트 결정 지연</div>
+          <p class="text-xs text-slate-400 mt-1">48h SLA. 주간 시연 강제.</p>
+        </div>
+        <div class="rounded-xl p-3 bg-amber-500/10 border border-amber-500/30">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-mono text-xs text-amber-400">R12 · 6/9</span>
+            <span class="text-xs text-slate-400">자원</span>
+          </div>
+          <div class="font-semibold text-sm">1인 풀수행 한계</div>
+          <p class="text-xs text-slate-400 mt-1">Ant Design Pro + AI 도구. 디자인 외주 대비.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== ARCHITECTURE ========== -->
+  <section id="architecture" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 text-xs font-mono text-cyan-400 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        08 · ARCHITECTURE
+        <span class="rounded-full px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-[10px] font-semibold">경쟁자에 없는 섹션</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">이미 설계가 끝났습니다</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        EPM 요구분석 6종 + RSM 도메인 설계 5종 + ADR 3건 + Hexagonal Architecture · 구현 전 의사결정 완료
+      </p>
+    </div>
+
+    <div class="rounded-2xl backdrop-blur-3xl bg-white/5 border border-white/10 overflow-hidden">
+      <div class="flex border-b border-white/10 overflow-x-auto" role="tablist" id="arch-tabs">
+        <button class="arch-tab-trigger flex-1 min-w-[120px] px-6 py-4 font-semibold text-sm bg-white/5 border-b-2 border-cyan-400 text-cyan-400" data-tab="diagram" role="tab" aria-selected="true">다이어그램</button>
+        <button class="arch-tab-trigger flex-1 min-w-[120px] px-6 py-4 font-semibold text-sm text-slate-400 border-b-2 border-transparent" data-tab="stack" role="tab" aria-selected="false">기술 스택</button>
+        <button class="arch-tab-trigger flex-1 min-w-[120px] px-6 py-4 font-semibold text-sm text-slate-400 border-b-2 border-transparent" data-tab="adrs" role="tab" aria-selected="false">ADR 3건</button>
+        <button class="arch-tab-trigger flex-1 min-w-[120px] px-6 py-4 font-semibold text-sm text-slate-400 border-b-2 border-transparent" data-tab="code" role="tab" aria-selected="false">코드 미리보기</button>
+      </div>
+
+      <!-- Tab: Diagram -->
+      <div class="arch-tab-panel p-6 md:p-8" data-panel="diagram">
+        <div class="mb-4 text-sm text-slate-400">Hexagonal Architecture · Port/Adapter 경계 분리</div>
+        <div class="flex justify-center">
+          <div class="w-full max-w-md rounded-2xl px-5 py-4 bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/30 flex items-center justify-center gap-3 shadow-lg shadow-purple-500/20">
+            <i data-lucide="monitor" class="w-5 h-5 text-purple-300"></i>
+            <div class="text-center">
+              <div class="font-semibold">관리자 PC 브라우저</div>
+              <div class="text-xs text-slate-400 mt-0.5">React 18 + TypeScript + Ant Design Pro</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-center my-3">
+          <i data-lucide="arrow-down" class="w-4 h-4 text-slate-600"></i>
+          <div class="text-[10px] font-mono text-slate-500 mt-1">HTTPS · REST + SSE</div>
+        </div>
+        <div class="rounded-2xl p-5 bg-cyan-500/5 border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+          <div class="flex items-center justify-center gap-2 text-xs font-mono text-cyan-400 mb-4">
+            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+            Spring Boot 3.x · Java 21 · Hexagonal Architecture
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <div class="rounded-lg px-3 py-2 bg-white/5 border border-white/10 text-center">
+              <div class="text-xs font-semibold">Interfaces</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">REST Controllers</div>
+            </div>
+            <div class="rounded-lg px-3 py-2 bg-white/5 border border-white/10 text-center">
+              <div class="text-xs font-semibold">Application</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Service · Transaction</div>
+            </div>
+            <div class="rounded-lg px-3 py-2 bg-white/5 border border-white/10 text-center">
+              <div class="text-xs font-semibold">Domain</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Entity · Port</div>
+            </div>
+            <div class="rounded-lg px-3 py-2 bg-white/5 border border-white/10 text-center">
+              <div class="text-xs font-semibold">Infrastructure</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Adapter · Repository</div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-4 my-3 text-center">
+          <i data-lucide="arrow-down" class="w-4 h-4 text-slate-600 mx-auto"></i>
+          <i data-lucide="arrow-down" class="w-4 h-4 text-slate-600 mx-auto"></i>
+          <i data-lucide="arrow-down" class="w-4 h-4 text-slate-600 mx-auto"></i>
+          <i data-lucide="arrow-down" class="w-4 h-4 text-slate-600 mx-auto"></i>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="rounded-xl p-4 bg-emerald-500/5 border border-emerald-500/30">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
+              <span class="font-semibold text-sm">Oracle</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-300">
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>readonly 전용</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>HikariCP + ojdbc11</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-emerald-400"></span>Named Query</li>
+            </ul>
+          </div>
+          <div class="rounded-xl p-4 bg-purple-500/5 border border-purple-500/30">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
+              <span class="font-semibold text-sm">PostgreSQL</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-300">
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-purple-400"></span>메타·이력·감사</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-purple-400"></span>JSONB · 파티셔닝</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-purple-400"></span>Flyway 마이그레이션</li>
+            </ul>
+          </div>
+          <div class="rounded-xl p-4 bg-pink-500/5 border border-pink-500/30">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="zap" class="w-4 h-4 text-pink-400"></i>
+              <span class="font-semibold text-sm">Redis + S3</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-300">
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-pink-400"></span>Job Queue · Session</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-pink-400"></span>PDF immutable 저장</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-pink-400"></span>DLQ · 재시도</li>
+            </ul>
+          </div>
+          <div class="rounded-xl p-4 bg-amber-500/5 border border-amber-500/30">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="cloud" class="w-4 h-4 text-amber-400"></i>
+              <span class="font-semibold text-sm">External APIs</span>
+            </div>
+            <ul class="space-y-1.5 text-xs text-slate-300">
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-amber-400"></span>AWS SES (이메일)</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-amber-400"></span>엔팩스/비즈팩스</li>
+              <li class="flex items-center gap-1.5"><span class="w-1 h-1 rounded-full bg-amber-400"></span>알리고/솔라피</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-6 rounded-xl p-3 bg-white/5 border border-white/10 flex items-center justify-center gap-2 md:gap-4 text-xs flex-wrap">
+          <span class="flex items-center gap-1.5 text-slate-400"><i data-lucide="activity" class="w-3.5 h-3.5"></i>Observability</span>
+          <span class="text-slate-600">·</span>
+          <span class="rounded-full px-2.5 py-0.5 bg-cyan-500/10 text-cyan-300">Prometheus</span>
+          <span class="rounded-full px-2.5 py-0.5 bg-cyan-500/10 text-cyan-300">Grafana</span>
+          <span class="rounded-full px-2.5 py-0.5 bg-cyan-500/10 text-cyan-300">Loki</span>
+          <span class="rounded-full px-2.5 py-0.5 bg-cyan-500/10 text-cyan-300">Micrometer APM</span>
+        </div>
+      </div>
+
+      <!-- Tab: Stack -->
+      <div class="arch-tab-panel hidden p-6" data-panel="stack">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-xs text-slate-400 border-b border-white/10">
+                <th class="py-3 px-2">계층</th>
+                <th class="py-3 px-2">선택</th>
+                <th class="py-3 px-2">근거</th>
+                <th class="py-3 px-2 text-right">대안 기각</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+              <tr><td class="py-3 px-2 text-slate-400">Language</td><td class="py-3 px-2 font-semibold">Java 21 LTS</td><td class="py-3 px-2 text-xs text-slate-300">Oracle ojdbc11 · 본인 22년 전문성</td><td class="py-3 px-2 text-xs text-slate-500 text-right">Kotlin(학습), Go(Oracle)</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Framework</td><td class="py-3 px-2 font-semibold">Spring Boot 3.x</td><td class="py-3 px-2 text-xs text-slate-300">엔터프라이즈 표준 · 생산성</td><td class="py-3 px-2 text-xs text-slate-500 text-right">Quarkus · Micronaut</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">메타 DB</td><td class="py-3 px-2 font-semibold">PostgreSQL 16</td><td class="py-3 px-2 text-xs text-slate-300">JSONB · 파티셔닝 · OSS</td><td class="py-3 px-2 text-xs text-slate-500 text-right">MySQL · Oracle 단일</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Queue</td><td class="py-3 px-2 font-semibold">Redis 7 Streams</td><td class="py-3 px-2 text-xs text-slate-300">Queue + Session + 캐시 통합</td><td class="py-3 px-2 text-xs text-slate-500 text-right">RabbitMQ · Kafka</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Storage</td><td class="py-3 px-2 font-semibold">AWS S3 / MinIO</td><td class="py-3 px-2 text-xs text-slate-300">PDF immutable 버전 관리</td><td class="py-3 px-2 text-xs text-slate-500 text-right">NFS · 로컬 볼륨</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">PDF Engine</td><td class="py-3 px-2 font-semibold">OpenHTMLtoPDF</td><td class="py-3 px-2 text-xs text-slate-300">단일 JVM · LGPL · 한글 완벽</td><td class="py-3 px-2 text-xs text-slate-500 text-right">iText(AGPL) · PDFBox</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Frontend</td><td class="py-3 px-2 font-semibold">React 18 + TS + Vite</td><td class="py-3 px-2 text-xs text-slate-300">모던 · Ant Design Pro 호환</td><td class="py-3 px-2 text-xs text-slate-500 text-right">Vue · Thymeleaf</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">UI Library</td><td class="py-3 px-2 font-semibold">Ant Design Pro</td><td class="py-3 px-2 text-xs text-slate-300">ProTable/Form/Layout 내장</td><td class="py-3 px-2 text-xs text-slate-500 text-right">MUI · Chakra</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Auth</td><td class="py-3 px-2 font-semibold">Spring Security + Session</td><td class="py-3 px-2 text-xs text-slate-300">CSRF 방어 · 감사 추적</td><td class="py-3 px-2 text-xs text-slate-500 text-right">JWT · OAuth</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Email API</td><td class="py-3 px-2 font-semibold">AWS SES</td><td class="py-3 px-2 text-xs text-slate-300">바운스 자동 · 무료 10K/월</td><td class="py-3 px-2 text-xs text-slate-500 text-right">SendGrid · SMTP 직</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Kakao</td><td class="py-3 px-2 font-semibold">알리고 + 솔라피</td><td class="py-3 px-2 text-xs text-slate-300">심사 빠름 · 이중 계약 백업</td><td class="py-3 px-2 text-xs text-slate-500 text-right">카카오 i (심사 지연)</td></tr>
+              <tr><td class="py-3 px-2 text-slate-400">Container</td><td class="py-3 px-2 font-semibold">Docker Compose</td><td class="py-3 px-2 text-xs text-slate-300">배포 단순화</td><td class="py-3 px-2 text-xs text-slate-500 text-right">Kubernetes(과잉)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: ADRs -->
+      <div class="arch-tab-panel hidden p-6" data-panel="adrs">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="rounded-xl p-5 bg-white/5 border border-white/10 hover:border-cyan-500/30 transition">
+            <div class="text-xs font-mono text-cyan-400 mb-2">ADR-01 · Accepted</div>
+            <h4 class="font-semibold mb-2">발송은 비동기 큐 기반</h4>
+            <p class="text-xs text-slate-300 mb-3">Redis Streams + Worker Pool + DLQ</p>
+            <div class="text-xs text-slate-400">
+              <strong class="text-emerald-300">근거</strong>: 외부 API 지연·재시도·관찰성 확보<br>
+              <strong class="text-red-300">대안 기각</strong>: 동기 API — 대량 처리 불가
+            </div>
+          </div>
+          <div class="rounded-xl p-5 bg-white/5 border border-white/10 hover:border-cyan-500/30 transition">
+            <div class="text-xs font-mono text-cyan-400 mb-2">ADR-02 · Accepted</div>
+            <h4 class="font-semibold mb-2">PDF immutable + S3 버전 관리</h4>
+            <p class="text-xs text-slate-300 mb-3">생성된 PDF는 수정 불가, 재생성은 새 레코드</p>
+            <div class="text-xs text-slate-400">
+              <strong class="text-emerald-300">근거</strong>: 감사·법규 대응, 재발송 시 동일 파일 보장<br>
+              <strong class="text-red-300">대안 기각</strong>: in-place 수정 — 이력 복원성 상실
+            </div>
+          </div>
+          <div class="rounded-xl p-5 bg-white/5 border border-white/10 hover:border-cyan-500/30 transition">
+            <div class="text-xs font-mono text-cyan-400 mb-2">ADR-03 · Accepted</div>
+            <h4 class="font-semibold mb-2">Oracle readonly + PG 메타 DB 분리</h4>
+            <p class="text-xs text-slate-300 mb-3">DataQueryService 단일 경로, 쓰기 전면 금지</p>
+            <div class="text-xs text-slate-400">
+              <strong class="text-emerald-300">근거</strong>: DBA 권한·트랜잭션 영향 리스크 제거<br>
+              <strong class="text-red-300">대안 기각</strong>: Oracle 단일 DB — 운영 경계 모호
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Code -->
+      <div class="arch-tab-panel hidden p-6" data-panel="code">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2 text-sm">
+            <i data-lucide="file-code-2" class="w-4 h-4 text-cyan-400"></i>
+            <span class="font-mono text-slate-300">application/dispatch/DispatchService.java</span>
+          </div>
+          <span class="text-xs text-slate-500">RSM behaviors.Manager.dispatchBatch() 매핑</span>
+        </div>
+        <pre class="rounded-xl !bg-slate-950/80 !p-4 text-xs overflow-x-auto"><code class="language-java">@Service
+@RequiredArgsConstructor
+@Transactional
+public class DispatchService {
+
+    private final PdfRepository pdfRepo;
+    private final DispatchJobRepository jobRepo;
+    private final DispatchRecordRepository recordRepo;
+    private final JobQueue queue;          // Port: Redis Streams Adapter
+    private final RecipientResolver resolver;
+    private final AuditService auditService;
+
+    /**
+     * RSM behaviors.Manager.dispatchBatch()의 application-layer 구현.
+     * 사전조건: 모든 pdfIds 존재, 채널별 수신인 최소 1명 확보
+     * 사후조건: DispatchJob 생성 + DispatchRecord N건 + Queue 등록
+     */
+    public DispatchJob dispatchBatch(
+            Long managerId,
+            List&lt;Long&gt; pdfIds,
+            List&lt;Channel&gt; channels,
+            DispatchPolicy policy) {
+
+        // 1. 사전조건 검증
+        var pdfs = pdfRepo.findAllById(pdfIds);
+        if (pdfs.size() != pdfIds.size()) {
+            throw new DomainException("일부 PDF 찾을 수 없음");
+        }
+
+        // 2. Job 생성 (DispatchJob Object)
+        var job = DispatchJob.create(managerId, pdfIds.size() * channels.size());
+        jobRepo.save(job);
+
+        // 3. Record 생성 (policy에 따라 분기)
+        var records = buildRecords(job, pdfs, channels, policy);
+        recordRepo.saveAll(records);
+
+        // 4. Queue 등록 → Worker가 비동기로 처리 (C-1 Collaboration)
+        queue.enqueue(job.getJobId());
+
+        // 5. 감사 로그 (cross-cutting concern)
+        auditService.record(AuditAction.DISPATCH, managerId, job.getJobId());
+
+        return job;
+    }
+
+    private List&lt;DispatchRecord&gt; buildRecords(
+            DispatchJob job, List&lt;GeneratedPdf&gt; pdfs,
+            List&lt;Channel&gt; channels, DispatchPolicy policy) {
+        // BROADCAST: 모든 채널로 동시 발송 (pdf × channels 만큼)
+        // PRIORITY: 우선순위 첫 가능 채널 (pdf당 1건)
+        return switch (policy.mode()) {
+            case BROADCAST -&gt; broadcastMode(job, pdfs, channels);
+            case PRIORITY  -&gt; priorityMode(job, pdfs, channels, policy);
+        };
+    }
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TIMELINE ========== -->
+  <section id="timeline" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 text-xs font-mono text-emerald-400 mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        09 · TIMELINE
+        <span class="rounded-full px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">경쟁자에 없는 섹션</span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">주차별 실행 계획</h2>
+      <p class="mt-3 text-lg text-slate-300">
+        "180일" 같은 대략의 약속이 아닌 · 14주 세분화 + 6개 마일스톤 + 매 2주 시연
+      </p>
+    </div>
+
+    <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 overflow-hidden">
+      <div class="overflow-x-auto">
+        <div class="min-w-[900px]">
+          <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 mb-3 text-xs text-slate-500">
+            <div></div>
+            <div class="text-center">W01</div><div class="text-center">W02</div><div class="text-center">W03</div><div class="text-center">W04</div>
+            <div class="text-center">W05</div><div class="text-center">W06</div><div class="text-center">W07</div><div class="text-center">W08</div>
+            <div class="text-center">W09</div><div class="text-center">W10</div><div class="text-center">W11</div><div class="text-center">W12</div>
+            <div class="text-center">W13</div><div class="text-center">W14</div>
+          </div>
+
+          <div class="space-y-2">
+            <!-- Phase 1 -->
+            <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 items-center">
+              <div class="text-xs font-semibold text-slate-300 pr-2">P1 기획·디자인·코어</div>
+              <div class="col-span-4"><div class="gantt-bar gantt-bar-p1"></div></div>
+              <div class="col-span-10"></div>
+            </div>
+            <!-- Phase 2 -->
+            <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 items-center">
+              <div class="text-xs font-semibold text-slate-300 pr-2">P2 3채널·이력·통계</div>
+              <div class="col-span-4"></div>
+              <div class="col-span-4"><div class="gantt-bar gantt-bar-p2"></div></div>
+              <div class="col-span-6"></div>
+            </div>
+            <!-- Phase 3 -->
+            <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 items-center">
+              <div class="text-xs font-semibold text-slate-300 pr-2">P3 UI·관리자 패널</div>
+              <div class="col-span-8"></div>
+              <div class="col-span-3"><div class="gantt-bar gantt-bar-p3"></div></div>
+              <div class="col-span-3"></div>
+            </div>
+            <!-- Phase 4 -->
+            <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 items-center">
+              <div class="text-xs font-semibold text-slate-300 pr-2">P4 안정화·배포</div>
+              <div class="col-span-11"></div>
+              <div class="col-span-3"><div class="gantt-bar gantt-bar-p4"></div></div>
+            </div>
+            <!-- Kakao approval (parallel) -->
+            <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 items-center">
+              <div class="text-xs font-semibold text-amber-300 pr-2 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>알림톡 심사 (병행)</div>
+              <div class="col-span-2"><div class="gantt-bar" style="background: linear-gradient(90deg, rgba(251,191,36,0.6), rgba(251,191,36,0.4)); height: 16px; margin-top: 6px;"></div></div>
+              <div class="col-span-12"></div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-white/10">
+            <div class="grid grid-cols-[180px_repeat(14,_1fr)] gap-1 items-center">
+              <div class="text-xs text-slate-400 font-semibold">마일스톤</div>
+              <div></div>
+              <div class="flex justify-center"><div class="milestone-marker">1</div></div>
+              <div></div>
+              <div class="flex justify-center"><div class="milestone-marker">2</div></div>
+              <div></div>
+              <div></div>
+              <div class="flex justify-center"><div class="milestone-marker">3</div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div class="flex justify-center"><div class="milestone-marker">4</div></div>
+              <div></div>
+              <div></div>
+              <div class="flex justify-center"><div class="milestone-marker">5</div></div>
+            </div>
+            <div class="mt-3 grid grid-cols-5 gap-2 text-xs text-slate-400">
+              <div>M1 기획·디자인 승인</div>
+              <div>M2 PDF 생성 MVP</div>
+              <div>M3 3채널 발송</div>
+              <div>M4 UI 완성</div>
+              <div>M5 운영 배포</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap gap-4 text-xs">
+        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-purple-500/60"></span>Phase 1 — 기획·디자인·인증·Oracle·PDF MVP</span>
+        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-pink-500/60"></span>Phase 2 — 3채널·Queue·이력·통계</span>
+        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-emerald-500/60"></span>Phase 3 — React UI · 관리자 화면</span>
+        <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-cyan-500/60"></span>Phase 4 — E2E·성능·배포</span>
+      </div>
+    </div>
+
+    <div class="mt-6 rounded-2xl p-6 backdrop-blur-3xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 flex items-start gap-4">
+      <div class="p-2.5 rounded-xl bg-emerald-500/20 flex-shrink-0">
+        <i data-lucide="shield-check" class="w-5 h-5 text-emerald-300"></i>
+      </div>
+      <div>
+        <div class="font-semibold mb-1">매 2주 스프린트 시연 + 6개월 무상 하자보수</div>
+        <p class="text-slate-300 text-sm leading-relaxed">
+          매 2주마다 스테이징 환경에 증분 배포하여 발주자님이 직접 사용해보실 수 있도록 합니다.
+          W14 운영 배포 이후 <span class="font-semibold text-emerald-300">6개월(W26) 무상 하자보수</span>로 안정 운영을 보장합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== WHY-US ========== -->
+  <section id="why-us" class="max-w-7xl mx-auto px-6 py-20 md:py-32">
+    <div class="mb-10 text-center">
+      <div class="text-xs font-mono text-purple-400 mb-3">10 · WHY US</div>
+      <h2 class="text-4xl md:text-5xl font-bold leading-tight">왜 저희와 함께해야 할까요</h2>
+      <p class="mt-3 text-lg text-slate-300 max-w-2xl mx-auto">
+        17명의 지원자 중에서 저희가 추가로 드릴 수 있는 것들
+      </p>
+    </div>
+
+    <div class="rounded-2xl backdrop-blur-3xl bg-white/5 border border-white/10 overflow-hidden">
+      <div class="grid grid-cols-[1fr_auto_auto] gap-0 text-sm">
+        <div class="px-6 py-4 border-b border-white/10 font-semibold text-slate-400">차별화 포인트</div>
+        <div class="px-6 py-4 border-b border-white/10 font-semibold text-purple-400 text-center w-32 bg-purple-500/10">우리</div>
+        <div class="px-6 py-4 border-b border-white/10 font-semibold text-slate-500 text-center w-32">일반 지원자</div>
+
+        <div class="px-6 py-4 border-b border-white/5 text-slate-300">사전 요구사항 검토서 · 질의서 · 리스크 분석</div>
+        <div class="px-6 py-4 border-b border-white/5 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 border-b border-white/5 text-center"><i data-lucide="x" class="w-5 h-5 text-red-400 inline"></i></div>
+
+        <div class="px-6 py-4 border-b border-white/5 text-slate-300">EPM 5종 + RSM 5종 사전 모델링</div>
+        <div class="px-6 py-4 border-b border-white/5 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 border-b border-white/5 text-center"><i data-lucide="x" class="w-5 h-5 text-red-400 inline"></i></div>
+
+        <div class="px-6 py-4 border-b border-white/5 text-slate-300">Oracle 22년 경력 (산업은행 EKP 유지보수)</div>
+        <div class="px-6 py-4 border-b border-white/5 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 border-b border-white/5 text-center"><span class="text-slate-500 text-xs">일부</span></div>
+
+        <div class="px-6 py-4 border-b border-white/5 text-slate-300">Hexagonal Architecture + Channel Adapter 추상화</div>
+        <div class="px-6 py-4 border-b border-white/5 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 border-b border-white/5 text-center"><i data-lucide="x" class="w-5 h-5 text-red-400 inline"></i></div>
+
+        <div class="px-6 py-4 border-b border-white/5 text-slate-300">AI 래피드 프로토타이핑 (2주 증분 시연)</div>
+        <div class="px-6 py-4 border-b border-white/5 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 border-b border-white/5 text-center"><i data-lucide="x" class="w-5 h-5 text-red-400 inline"></i></div>
+
+        <div class="px-6 py-4 border-b border-white/5 text-slate-300">레퍼런스 UI 웹사이트 (본 페이지) 제공</div>
+        <div class="px-6 py-4 border-b border-white/5 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 border-b border-white/5 text-center"><i data-lucide="x" class="w-5 h-5 text-red-400 inline"></i></div>
+
+        <div class="px-6 py-4 text-slate-300">Spring Security 전문 (SAML2, JWT, MFA)</div>
+        <div class="px-6 py-4 text-center bg-purple-500/5"><i data-lucide="check" class="w-5 h-5 text-emerald-400 inline"></i></div>
+        <div class="px-6 py-4 text-center"><span class="text-slate-500 text-xs">일부</span></div>
+      </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 text-center">
+        <div class="text-3xl font-bold text-purple-400">22<span class="text-lg">년</span></div>
+        <div class="text-xs text-slate-400 mt-1">Java/Spring 경력</div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 text-center">
+        <div class="text-3xl font-bold text-emerald-400">32+</div>
+        <div class="text-xs text-slate-400 mt-1">수행 프로젝트</div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 text-center">
+        <div class="text-3xl font-bold text-cyan-400">8만</div>
+        <div class="text-xs text-slate-400 mt-1">RAG 판례 DB 경험</div>
+      </div>
+      <div class="rounded-2xl p-6 backdrop-blur-3xl bg-white/5 border border-white/10 text-center">
+        <div class="text-3xl font-bold text-pink-400">22/22</div>
+        <div class="text-xs text-slate-400 mt-1">산출물 사전 작성</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== CTA ========== -->
+  <section id="cta" class="max-w-5xl mx-auto px-6 py-24 md:py-32">
+    <div class="rounded-3xl p-10 md:p-16 backdrop-blur-3xl bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-emerald-500/10 border border-purple-500/30 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-96 h-96 rounded-full bg-purple-500/10 blur-3xl -mr-32 -mt-32"></div>
+      <div class="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-emerald-500/10 blur-3xl -ml-32 -mb-32"></div>
+      <div class="relative text-center">
+        <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs bg-white/10 border border-white/20 text-slate-200 mb-6">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-300"></i>
+          30분이면 충분합니다
+        </div>
+        <h2 class="text-4xl md:text-6xl font-bold leading-tight mb-6">
+          30분 화상 미팅에서<br/>
+          <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-emerald-400 bg-clip-text text-transparent">이 10가지 질문을 같이 풀어봐요</span>
+        </h2>
+        <p class="text-lg text-slate-300 mb-10 max-w-2xl mx-auto">
+          이 레퍼런스 UI와 심층 분석 리포트를 직접 보여드리고,<br/>
+          발주자님의 질문에도 즉석에서 답변드립니다.
+        </p>
+
+        <div class="rounded-2xl p-8 bg-slate-950/40 border border-white/10 mb-8 max-w-2xl mx-auto text-left">
+          <div class="flex items-center gap-2 text-sm font-semibold mb-4">
+            <i data-lucide="calculator" class="w-4 h-4 text-emerald-400"></i>
+            이 시스템 도입 시 얼마나 절감될까요?
+          </div>
+          <label class="text-xs text-slate-400 mb-2 block">월 고지서·납부확인서 발송 건수</label>
+          <div class="flex items-center gap-4">
+            <input type="range" id="roi-trades" min="100" max="10000" value="1500" step="100" class="flex-1" />
+            <span id="roi-trades-display" class="font-mono text-sm w-20 text-right">1,500건</span>
+          </div>
+          <div class="mt-6 grid grid-cols-2 gap-4">
+            <div class="rounded-xl p-4 bg-emerald-500/10 border border-emerald-500/20">
+              <div class="text-xs text-slate-400 mb-1">연간 시간 절감</div>
+              <div class="text-2xl font-bold text-emerald-400">
+                <span id="roi-hours">2,250</span><span class="text-sm">시간</span>
+              </div>
+            </div>
+            <div class="rounded-xl p-4 bg-purple-500/10 border border-purple-500/20">
+              <div class="text-xs text-slate-400 mb-1">인건비 절감 환산</div>
+              <div class="text-2xl font-bold text-purple-400">
+                ₩<span id="roi-cost">112,500,000</span>
+              </div>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-slate-500">※ 건당 7.5분 절감, 시간당 인건비 5만원 기준 추산 · 실제 효과는 업무 구조에 따라 상이</p>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <!-- TODO: Cal.com 실제 URL 확정 후 복원 (임시 비활성)
+          <a href="https://cal.com/meleteyo/30min" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-xl px-6 py-4 font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-xl shadow-purple-500/40 transition">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            Cal.com에서 미팅 예약
+          </a>
+          -->
+          <a href="demo/자동시연.html" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-xl px-6 py-4 font-bold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-xl shadow-purple-500/40 transition">
+            <i data-lucide="video" class="w-5 h-5"></i>
+            1분 30초 자동 시연 보기
+          </a>
+          <!-- TODO: 챗봇 문의 기능 재활성화 시 복원 (floating chatbot 함께)
+          <button onclick="document.getElementById('chatbot-toggle').click()" class="inline-flex items-center gap-2 rounded-xl px-6 py-4 font-semibold bg-white/5 border border-white/10 hover:bg-white/10 transition">
+            <i data-lucide="message-circle" class="w-5 h-5"></i>
+            지금 질문하기
+          </button>
+          -->
+        </div>
+
+        <p class="mt-8 text-xs text-slate-500">
+          원문 공고: <a href="https://www.wishket.com/project/154865/" class="text-purple-400 hover:text-purple-300 underline underline-offset-2">위시켓 #154865</a>
+          · 응답 평균 12시간 이내
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FLOATING CHATBOT (임시 비활성) ========== -->
+  <!-- TODO: 챗봇 문의 기능 재활성화 시 주석 해제 (CTA 섹션 "지금 질문하기" 버튼도 함께)
+  <button id="chatbot-toggle" class="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 shadow-2xl shadow-purple-500/50 hover:scale-110 transition-transform" aria-label="챗봇 열기">
+    <i data-lucide="message-circle" class="w-6 h-6 text-white"></i>
+  </button>
+  <div id="chatbot-panel" class="fixed bottom-24 right-6 z-40 w-96 max-w-[calc(100vw-3rem)] hidden">
+    <div class="rounded-2xl backdrop-blur-3xl bg-slate-900/95 border border-white/20 shadow-2xl shadow-purple-500/30 overflow-hidden">
+      <div class="flex items-center gap-3 p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/20 to-pink-500/10">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-semibold text-sm">프로젝트 Q&A 챗봇</div>
+          <div class="text-xs text-emerald-400 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            데모 모드 · 위시켓 #154865
+          </div>
+        </div>
+        <button id="chatbot-close" class="p-1.5 rounded-lg hover:bg-white/10" aria-label="닫기">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="p-4 space-y-3 max-h-80 overflow-y-auto" id="chatbot-messages">
+        <div class="rounded-xl px-3 py-2 bg-white/5 text-sm max-w-[85%]">
+          안녕하세요! 프로젝트 관련 질문을 자유롭게 해보세요.<br>
+          예: "오라클 연결은?", "알림톡 심사 얼마 걸리나?", "예산 줄일 수 있나?"
+        </div>
+      </div>
+      <div class="p-3 border-t border-white/10 bg-white/5">
+        <form id="chatbot-form" class="flex items-center gap-2 rounded-xl bg-slate-950/50 border border-white/10 px-3 py-2">
+          <input type="text" id="chatbot-input" placeholder="메시지를 입력하세요…" class="bg-transparent flex-1 outline-none text-sm" />
+          <button type="submit" class="p-1.5 rounded-lg bg-purple-500 hover:bg-purple-600 transition">
+            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+          </button>
+        </form>
+        <p class="mt-2 text-[10px] text-slate-500 text-center">데모용 목업 · 실제 미팅에서 라이브 대화 가능</p>
+      </div>
+    </div>
+  </div>
+  -->
+
+  <!-- ========== CMD+K MODAL ========== -->
+  <div id="cmdk-backdrop" class="fixed inset-0 z-20 bg-slate-950/70 backdrop-blur-sm hidden" aria-hidden="true"></div>
+  <div id="cmdk-modal" class="fixed inset-0 z-20 hidden items-start justify-center pt-24 px-4" role="dialog" aria-modal="true">
+    <div class="w-full max-w-xl rounded-2xl backdrop-blur-3xl bg-slate-900/95 border border-white/20 shadow-2xl shadow-purple-500/20 overflow-hidden">
+      <div class="flex items-center gap-3 p-4 border-b border-white/10">
+        <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+        <input type="text" id="cmdk-input" placeholder="섹션 이동 또는 검색…" class="bg-transparent flex-1 outline-none text-sm" />
+        <kbd class="font-mono text-xs px-2 py-1 rounded bg-white/10 text-slate-400">ESC</kbd>
+      </div>
+      <ul class="max-h-80 overflow-y-auto p-2" id="cmdk-list">
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#core"><i data-lucide="send" class="w-4 h-4 text-purple-400"></i><span class="flex-1 text-sm">CORE — 원클릭 발송</span><span class="text-xs text-slate-500">01</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#portfolio"><i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i><span class="flex-1 text-sm">DASHBOARD — 발송 대시보드</span><span class="text-xs text-slate-500">02</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#engine"><i data-lucide="target" class="w-4 h-4 text-pink-400"></i><span class="flex-1 text-sm">ENGINE — 발송 정책 엔진</span><span class="text-xs text-slate-500">03</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#operator"><i data-lucide="users" class="w-4 h-4 text-cyan-400"></i><span class="flex-1 text-sm">OPERATOR — 관리자 패널</span><span class="text-xs text-slate-500">04</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#insights"><i data-lucide="help-circle" class="w-4 h-4 text-amber-400"></i><span class="flex-1 text-sm">INSIGHTS — 숨은 이슈</span><span class="text-xs text-slate-500">05</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#questions"><i data-lucide="help-circle" class="w-4 h-4 text-purple-400"></i><span class="flex-1 text-sm">QUESTIONS — 발주자 질의</span><span class="text-xs text-slate-500">06</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#risks"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i><span class="flex-1 text-sm">RISKS — 리스크 매트릭스</span><span class="text-xs text-slate-500">07</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#architecture"><i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i><span class="flex-1 text-sm">ARCHITECTURE — ADR · 코드</span><span class="text-xs text-slate-500">08</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#timeline"><i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i><span class="flex-1 text-sm">TIMELINE — 주차별 계획</span><span class="text-xs text-slate-500">09</span></li>
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#why-us"><i data-lucide="award" class="w-4 h-4 text-purple-400"></i><span class="flex-1 text-sm">WHY-US — 경쟁 비교</span><span class="text-xs text-slate-500">10</span></li>
+        <!-- TODO: 30분 미팅 예약 기능 활성화 시 복원
+        <li class="cmdk-item flex items-center gap-3 rounded-lg px-3 py-2.5 cursor-pointer hover:bg-white/5" data-target="#cta"><i data-lucide="calendar" class="w-4 h-4 text-pink-400"></i><span class="flex-1 text-sm">CTA — 30분 미팅 예약</span><span class="text-xs text-slate-500">11</span></li>
+        -->
+      </ul>
+      <div class="flex items-center justify-between px-4 py-2 border-t border-white/10 text-xs text-slate-500">
+        <span>↑↓ 이동</span>
+        <span>↵ 선택</span>
+        <span>ESC 닫기</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SIDE PANEL ========== -->
+  <aside id="side-panel" class="fixed right-0 top-0 h-screen w-96 max-w-[90vw] translate-x-full transition-transform duration-300 z-30 backdrop-blur-3xl bg-slate-900/95 border-l border-white/10 shadow-2xl shadow-purple-500/20 overflow-y-auto">
+    <div class="flex items-center justify-between p-4 border-b border-white/10">
+      <div class="flex items-center gap-2">
+        <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+        <span class="font-semibold text-sm" id="side-panel-title">Detail</span>
+      </div>
+      <button id="side-panel-close" class="p-1.5 rounded-lg hover:bg-white/10" aria-label="닫기">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div id="side-panel-body" class="p-6"></div>
+  </aside>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="border-t border-white/10 mt-20 py-10 text-center text-sm text-slate-500">
+    <div class="max-w-7xl mx-auto px-6">
+      <p>
+        이 페이지는 위시켓 프로젝트 <span class="font-mono text-purple-400">#154865</span> 지원용 레퍼런스 UI입니다.
+        실제 서비스가 아니며 데이터는 데모 목업입니다.
+      </p>
+      <p class="mt-2">
+        Generated by <span class="font-mono">wishket-refui</span> · Last updated: 2026-04-25
+      </p>
+    </div>
+  </footer>
+
+  <script src="./client.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

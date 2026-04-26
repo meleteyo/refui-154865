@@ -1,0 +1,106 @@
+{
+  "project": {
+    "id": 154865,
+    "title": "고지서 및 납부확인서 PDF 생성 및 다채널 발송 관리 시스템 구축",
+    "url": "https://www.wishket.com/project/154865/",
+    "budget": "15,000,000원 (총액 확정)",
+    "duration": "180일 (6개월)",
+    "applicants": 17,
+    "deadline": "2026-05-08",
+    "client": "mi****** (rating 0.0, 미인증 — 첫 프로젝트 추정)",
+    "scope": "기획 · 디자인 · 개발 · 인프라 풀수행"
+  },
+  "hero": {
+    "headline": "건당 7분이 30초로. 3채널이 한 화면에.",
+    "subline": "Oracle DB의 고객·결제 데이터로 브랜드 반영 PDF를 자동 생성하고, 이메일·웹팩스·카카오 알림톡을 단일 UI로 통합 발송하는 사내 관리자 시스템",
+    "insights": [
+      {
+        "title": "Oracle DB 접근 방식이 전체를 결정합니다",
+        "body": "사내 상주/VPN/파일 전달 중 무엇인가에 따라 배포·일정·비용이 30% 이상 달라집니다."
+      },
+      {
+        "title": "발송 규모와 '즉시'의 정의",
+        "body": "일·월 예상 건수, 단건/다건 선택, 동기/비동기 기대치가 성능·인프라 기반 가정."
+      },
+      {
+        "title": "알림톡 심사 2주는 단축 불가",
+        "body": "발신 프로필 유무에 따라 심사 2주+α. W01 Day 1 병행 신청이 유일한 해법."
+      }
+    ]
+  },
+  "ambiguous": [
+    { "id": "AM-03", "title": "Oracle DB 접근 방식", "impact": "아키텍처 30% 변동" },
+    { "id": "AM-01/02", "title": "'수동 선택·즉시 발송'", "impact": "큐·진행률 UI 필요성" },
+    { "id": "AM-07/08", "title": "발송 규모·배포 환경", "impact": "인프라 비용 월 50만원+" }
+  ],
+  "missing": [
+    "관리자 계정·권한 관리 UI", "대량(일괄) PDF 생성·발송", "예약 발송", "실패 건 재발송",
+    "템플릿 관리 UI", "이메일 바운스·수신거부", "알림톡 발신 프로필 관리", "감사 로그",
+    "엑셀 내보내기", "성능·SLA 기준", "PDF 암호화·보관기간", "개인정보 암호화 수준"
+  ],
+  "questions": [
+    { "id": "Q1",  "priority": "🔴", "title": "Oracle DB에 어떻게 접근하게 되나요?", "choices": "사내 상주 / VPN / 스테이징 DB / 파일 전달" },
+    { "id": "Q2",  "priority": "🔴", "title": "'수동 선택'은 단건인가, 묶음인가, 대량인가?", "choices": "단건 / ~50건 / ~수천 건" },
+    { "id": "Q3",  "priority": "🔴", "title": "일·월 발송 예상 규모는?", "choices": "수백 / 수천 / 수만" },
+    { "id": "Q4",  "priority": "🔴", "title": "'즉시 발송'의 SLA?", "choices": "동기 < 3s / 비동기 < 1min / 베스트에포트" },
+    { "id": "Q5",  "priority": "🔴", "title": "배포 환경은 온프레미스 vs 클라우드?", "choices": "사내 물리 / AWS·NCP / K8s / 협의" },
+    { "id": "Q6",  "priority": "🔴", "title": "카카오 비즈채널 보유 여부?", "choices": "있음 / 없음 / 모름" },
+    { "id": "Q7",  "priority": "🔴", "title": "웹팩스 업체 지정?", "choices": "엔팩스 / 비즈팩스 / 인터팩스 / 기타" },
+    { "id": "Q8",  "priority": "🔴", "title": "이메일 발송 방식?", "choices": "사내 SMTP / AWS SES / SendGrid" },
+    { "id": "Q9",  "priority": "🔴", "title": "외부 API 사용료 부담 주체?", "choices": "클라이언트 / 개발자 정산 / 1,500만원에 포함" },
+    { "id": "Q10", "priority": "🔴", "title": "관리자 권한 분리 수준?", "choices": "1종 / 2종 / 3종+" }
+  ],
+  "risks": [
+    { "id": "R1",  "name": "Oracle DB 접근 방식 미확정",              "prob": 3, "impact": 3, "score": 9, "strategy": "Q1 최우선 확정. VPN/파일 전달 중간 옵션 제안." },
+    { "id": "R2",  "name": "알림톡 심사 지연/탈락",                   "prob": 3, "impact": 3, "score": 9, "strategy": "W01 Day1 신청. 알리고+솔라피 이중 계약." },
+    { "id": "R5",  "name": "예산 1,500만원 범위 확장 누적",           "prob": 3, "impact": 3, "score": 9, "strategy": "Core/Optional/OOS 3단 합의. 변경 영향도 시트." },
+    { "id": "R6",  "name": "첫 프로젝트 클라이언트 의사결정 지연",     "prob": 3, "impact": 2, "score": 6, "strategy": "48h SLA. 주간 시연 강제." },
+    { "id": "R9",  "name": "Oracle 스키마 공유 지연",                 "prob": 2, "impact": 3, "score": 6, "strategy": "샘플 데이터(CSV) 선행 작업." },
+    { "id": "R11", "name": "외부 API 비용을 개발비에 포함 가정",        "prob": 2, "impact": 3, "score": 6, "strategy": "Q9 주체 분리. 월 비용 시뮬 제공." },
+    { "id": "R12", "name": "1인 풀수행 한계",                         "prob": 2, "impact": 3, "score": 6, "strategy": "Ant Design Pro + AI 도구 + 디자인 외주 대비." },
+    { "id": "R14", "name": "운영 환경(온프레미스 vs 클라우드) 미결정", "prob": 2, "impact": 3, "score": 6, "strategy": "Q11 조기 결정. 클라우드 권장." },
+    { "id": "R16", "name": "개인정보 준수 수준 모호",                 "prob": 2, "impact": 3, "score": 6, "strategy": "Q23 답변. 기본선 TLS+BCrypt+감사. 강화 시 별도 견적." },
+    { "id": "R3",  "name": "'수동 선택·즉시 발송' 해석 차이",           "prob": 3, "impact": 2, "score": 6, "strategy": "Q2/Q4 사전 합의. 계약서 명시." },
+    { "id": "R4",  "name": "발송 규모 미파악 → 인프라 비용 폭증",      "prob": 2, "impact": 3, "score": 6, "strategy": "Q3 범위 확정. 구간별 견적." },
+    { "id": "R7",  "name": "웹팩스 KISA 등록 지연",                   "prob": 2, "impact": 2, "score": 4, "strategy": "조기 접수. Mock Adapter로 선행 개발." },
+    { "id": "R8",  "name": "PDF 한글 렌더링 이슈",                    "prob": 2, "impact": 2, "score": 4, "strategy": "Noto Sans KR 임베딩 사전 검증." },
+    { "id": "R18", "name": "외부 API Rate Limit",                    "prob": 2, "impact": 2, "score": 4, "strategy": "Token Bucket. SES sandbox 해제." },
+    { "id": "R20", "name": "하자보수 중 유지보수 추가 요구",            "prob": 2, "impact": 2, "score": 4, "strategy": "계약서 하자보수 범위 명시." }
+  ],
+  "stack": [
+    { "layer": "Language",   "choice": "Java 21 LTS",       "rationale": "Oracle ojdbc11 · 22년 전문성", "alternatives": "Kotlin, Go" },
+    { "layer": "Framework",  "choice": "Spring Boot 3.x",    "rationale": "엔터프라이즈 표준",              "alternatives": "Quarkus, Micronaut" },
+    { "layer": "Meta DB",    "choice": "PostgreSQL 16",      "rationale": "JSONB · 파티셔닝",               "alternatives": "MySQL, Oracle 단일" },
+    { "layer": "Queue",      "choice": "Redis 7 Streams",    "rationale": "Queue + Session + 캐시",         "alternatives": "RabbitMQ, Kafka" },
+    { "layer": "Storage",    "choice": "AWS S3 / MinIO",     "rationale": "PDF immutable 버전 관리",         "alternatives": "NFS, 로컬" },
+    { "layer": "PDF",        "choice": "OpenHTMLtoPDF",      "rationale": "단일 JVM · LGPL · 한글",          "alternatives": "iText(AGPL), PDFBox" },
+    { "layer": "Frontend",   "choice": "React 18 + TS + Vite","rationale": "모던 · Ant Design 호환",         "alternatives": "Vue, Thymeleaf" },
+    { "layer": "UI",         "choice": "Ant Design Pro",     "rationale": "관리자 툴 생산성",                "alternatives": "MUI, Chakra" },
+    { "layer": "Auth",       "choice": "Spring Security + Session","rationale": "CSRF · 감사 추적",         "alternatives": "JWT, OAuth" },
+    { "layer": "Email",      "choice": "AWS SES",            "rationale": "바운스 자동 · 무료 10K/월",       "alternatives": "SendGrid" },
+    { "layer": "Kakao",      "choice": "알리고 + 솔라피",      "rationale": "심사 빠름 · 이중 계약",           "alternatives": "카카오 i 직접" },
+    { "layer": "Container",  "choice": "Docker Compose",     "rationale": "배포 단순",                      "alternatives": "Kubernetes" }
+  ],
+  "adrs": [
+    { "id": "ADR-01", "decision": "발송은 비동기 큐 기반", "rationale": "외부 API 지연·재시도·관찰성", "rejected": "동기 API — 대량 처리 불가" },
+    { "id": "ADR-02", "decision": "PDF immutable + S3 버전 관리", "rationale": "감사·법규 대응", "rejected": "in-place 수정 — 복원성 상실" },
+    { "id": "ADR-03", "decision": "Oracle readonly + PG 메타 분리", "rationale": "DBA 권한·트랜잭션 영향 제거", "rejected": "Oracle 단일 DB — 운영 경계 모호" }
+  ],
+  "timeline": {
+    "phases": [
+      { "name": "P1 기획·디자인·코어",  "weeks": [1, 2, 3, 4],      "color": "purple" },
+      { "name": "P2 3채널·이력·통계",   "weeks": [5, 6, 7, 8],      "color": "pink" },
+      { "name": "P3 UI·관리자 패널",    "weeks": [9, 10, 11],       "color": "emerald" },
+      { "name": "P4 안정화·배포",       "weeks": [12, 13, 14],      "color": "cyan" }
+    ],
+    "milestones": [
+      { "id": "M1", "week": 2,  "title": "기획·디자인 승인" },
+      { "id": "M2", "week": 4,  "title": "PDF 생성 MVP" },
+      { "id": "M3", "week": 7,  "title": "3채널 발송 성공" },
+      { "id": "M4", "week": 11, "title": "UI · 이력 완성" },
+      { "id": "M5", "week": 14, "title": "운영 배포" }
+    ]
+  },
+  "generatedAt": "2026-04-25",
+  "source": "project-analysis/154865-고지서PDF발송시스템"
+}

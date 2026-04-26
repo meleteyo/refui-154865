@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF 발송 시스템 · 1분 30초 자동 시연</title>
+  <link href="https://cdn.jsdelivr.net/npm/pretendard/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: #000; color: #f1f5f9;
+      font-family: 'Pretendard Variable', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .stage {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+    }
+
+    .frame-wrap {
+      flex: 1; position: relative; overflow: hidden;
+      background: #020617;
+    }
+
+    iframe {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1440px; height: 900px;
+      border: 0;
+    }
+
+    /* Caption overlay */
+    .caption {
+      position: absolute; left: 50%; bottom: 80px;
+      transform: translateX(-50%);
+      max-width: 720px; padding: 18px 28px;
+      background: rgba(2, 6, 23, 0.92);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 12px;
+      box-shadow: 0 12px 60px rgba(168, 85, 247, 0.25);
+      backdrop-filter: blur(8px);
+      opacity: 0; transition: opacity 0.5s ease;
+      z-index: 10;
+    }
+    .caption.show { opacity: 1; }
+    .caption .step-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.1em;
+      color: #c4b5fd; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .caption .step-text {
+      font-size: 18px; line-height: 1.55;
+      color: #f1f5f9; font-weight: 500;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 24px;
+      background: #0f172a;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      z-index: 20;
+    }
+    .topbar h1 {
+      margin: 0; font-size: 14px; font-weight: 600;
+      color: #f1f5f9;
+    }
+    .topbar .meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: #64748b;
+    }
+
+    /* Progress bar */
+    .progress-track {
+      flex: 1; max-width: 400px;
+      height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #a855f7, #ec4899);
+      width: 0%; transition: width 0.3s ease;
+    }
+    .timecode {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; color: #94a3b8;
+      min-width: 80px; text-align: right;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex; gap: 8px;
+    }
+    .btn {
+      padding: 6px 14px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: #f1f5f9; font-size: 12px;
+      cursor: pointer; transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn:hover { background: rgba(168,85,247,0.2); border-color: rgba(168,85,247,0.4); }
+    .btn.primary { background: linear-gradient(135deg, #a855f7, #ec4899); border: none; font-weight: 600; }
+
+    /* Cursor overlay */
+    .fake-cursor {
+      position: absolute; width: 32px; height: 32px;
+      pointer-events: none; z-index: 30;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8));
+      opacity: 0;
+    }
+    .fake-cursor.show { opacity: 1; }
+    .click-pulse {
+      position: absolute; pointer-events: none; z-index: 29;
+      width: 56px; height: 56px;
+      border: 3px solid #a855f7;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.3);
+      opacity: 0;
+    }
+    .click-pulse.fire {
+      animation: pulse 0.6s ease-out;
+    }
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+    }
+
+    /* Recording hint */
+    .rec-hint {
+      position: absolute; top: 80px; left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 18px; border-radius: 999px;
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid rgba(220, 38, 38, 0.4);
+      color: #fca5a5; font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      display: none; align-items: center; gap: 8px;
+      z-index: 15;
+    }
+    .rec-hint.show { display: flex; }
+    .rec-hint::before {
+      content: ''; width: 8px; height: 8px;
+      background: #ef4444; border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="topbar">
+      <h1>PDF 발송 시스템 · 자동 시연</h1>
+      <span class="meta">위시켓 #154865</span>
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <span class="timecode" id="timecode">0:00 / 1:30</span>
+      <div class="controls">
+        <button class="btn" id="btn-restart">↻ 처음부터</button>
+        <button class="btn primary" id="btn-play">▶ 재생</button>
+      </div>
+    </div>
+
+    <div class="frame-wrap">
+      <div class="rec-hint" id="rec-hint">REC · ⌘⇧5로 화면 녹화 시작 후 ▶ 재생을 눌러주세요</div>
+      <iframe id="proto" src="../proto/index.html"></iframe>
+
+      <svg class="fake-cursor" id="cursor" viewBox="0 0 24 24">
+        <path d="M3 3 L3 19 L8 14 L11 21 L14 20 L11 13 L18 13 Z"
+              fill="#fff" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      <div class="click-pulse" id="pulse"></div>
+
+      <div class="caption" id="caption">
+        <div class="step-label" id="caption-label">STEP 0</div>
+        <div class="step-text" id="caption-text">로딩 중…</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Demo timeline (90s total) =====
+    // Each step: { at: ms, label, text, action: () => Promise }
+    // Action runs at 'at' offset; caption shows for ~3-5s.
+
+    const TOTAL_MS = 90000;
+    const iframe = document.getElementById('proto');
+    const captionEl = document.getElementById('caption');
+    const captionLabel = document.getElementById('caption-label');
+    const captionText = document.getElementById('caption-text');
+    const cursor = document.getElementById('cursor');
+    const pulse = document.getElementById('pulse');
+    const progress = document.getElementById('progress');
+    const timecode = document.getElementById('timecode');
+    const recHint = document.getElementById('rec-hint');
+
+    let playing = false;
+    let startTime = 0;
+    let rafId = null;
+
+    // Helpers
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    const fmt = (ms) => {
+      const s = Math.floor(ms / 1000);
+      return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+    };
+
+    const setCaption = (label, text) => {
+      captionLabel.textContent = label;
+      captionText.textContent = text;
+      captionEl.classList.add('show');
+    };
+    const hideCaption = () => captionEl.classList.remove('show');
+
+    const navIframe = (name) => {
+      try {
+        const win = iframe.contentWindow;
+        if (win && win.__navigate) win.__navigate(name);
+      } catch (e) { console.warn('nav failed', e); }
+    };
+
+    // Drive the dispatch-console wizard from outside the iframe
+    const consoleStep = (n) => {
+      try {
+        const win = iframe.contentWindow;
+        if (!win) return;
+        if (n >= 2 && win.__consoleSelectAll) win.__consoleSelectAll();
+        if (win.__setConsoleStep) win.__setConsoleStep(n);
+      } catch (e) { console.warn('step failed', e); }
+    };
+    const consoleResetWizard = () => {
+      try {
+        const win = iframe.contentWindow;
+        if (!win) return;
+        if (win.__consoleClearSelection) win.__consoleClearSelection();
+        if (win.__setConsoleStep) win.__setConsoleStep(1);
+      } catch (e) {}
+    };
+
+    // Move fake cursor to a viewport-relative coordinate (within frame-wrap)
+    const moveCursor = (x, y) => {
+      cursor.style.left = (x - 16) + 'px';
+      cursor.style.top = (y - 16) + 'px';
+      cursor.classList.add('show');
+    };
+    const clickAt = (x, y) => {
+      pulse.style.left = x + 'px';
+      pulse.style.top = y + 'px';
+      pulse.classList.remove('fire');
+      void pulse.offsetWidth;
+      pulse.classList.add('fire');
+    };
+    const hideCursor = () => cursor.classList.remove('show');
+
+    // ===== Timeline =====
+    // 90s 구성 — 발송 콘솔 4단계를 명확하게 보여주는 데 무게 중심을 둠
+    const timeline = [
+      // 0:00 — 인트로 + 대시보드
+      { at: 500,    label: 'INTRO · 0:00',     text: '위시켓 154865 PDF 발송 시스템. 4개 화면 관리자 콘솔을 1분 30초 안에 보여드립니다.' },
+      { at: 5000,   label: '01 · 대시보드',     text: '대시보드 — 4개 KPI, 7일 추이, 채널 비중. 우하단 노란 배지로 데모 데이터임을 명시합니다.' },
+
+      // 0:10 — 발송 콘솔 진입 (4단계 시연 시작)
+      { at: 10000,  label: '02 · 발송 콘솔',    text: '발송 콘솔로 진입합니다. 4단계 위저드로 구성됐어요.',
+        action: () => { navIframe('console'); setTimeout(consoleResetWizard, 200); moveCursor(160, 280); clickAt(160, 280); } },
+
+      // 0:14 — STEP 1 대상 조회
+      { at: 14000,  label: 'STEP 1 · 대상 조회', text: 'Oracle DB에서 미발송 고지서를 조회합니다. 좌하단 녹색 점이 DB 연결 상태이고, 체크박스로 다중 선택합니다.',
+        action: () => { consoleStep(1); moveCursor(720, 540); } },
+      { at: 19000,  label: 'STEP 1 · 다중 선택', text: '5건을 선택했습니다. 우측 상단에 선택 건수가 실시간 누적되고, 선택이 1건 이상일 때만 [다음] 버튼이 활성화됩니다.',
+        action: () => { try { iframe.contentWindow.__consoleSelectAll && iframe.contentWindow.__consoleSelectAll(); } catch(e){} moveCursor(1280, 540); clickAt(1280, 540); } },
+
+      // 0:24 — STEP 2 템플릿 + PDF 미리보기
+      { at: 24000,  label: 'STEP 2 · 템플릿',   text: '템플릿을 고르면 우측에 PDF 미리보기가 A4 비율(210:297)로 즉시 렌더링됩니다.',
+        action: () => { consoleStep(2); moveCursor(380, 460); clickAt(380, 460); } },
+      { at: 29000,  label: 'STEP 2 · 라이브 반영', text: '브랜드 색을 Tweaks에서 바꾸면 디바운스 없이 PDF에 그대로 반영됩니다 — 수단이 아니라 목적이 일치하는 미리보기입니다.',
+        action: () => { moveCursor(1100, 480); } },
+
+      // 0:34 — STEP 3 채널·정책 (핵심)
+      { at: 34000,  label: 'STEP 3 · 채널·정책 ★', text: '핵심 단계. 발송 채널을 선택하고 정책을 결정합니다. PRIORITY 정책에서는 우선순위 1·2·3 번호로 순차 시도합니다.',
+        action: () => { consoleStep(3); moveCursor(540, 420); clickAt(540, 420); } },
+      { at: 41000,  label: 'STEP 3 · 정책 토글', text: 'Tweaks에서 PRIORITY → BROADCAST로 바꾸면 우선순위 번호가 사라지고 동시 발송으로 UI가 실제로 달라집니다. 정책 엔진이 동작한다는 증명.',
+        action: () => { moveCursor(1280, 220); } },
+
+      // 0:48 — STEP 4 발송 진행률 + 결과
+      { at: 48000,  label: 'STEP 4 · 발송 실행', text: '발송 실행. 비동기 큐로 0%부터 100%까지 진행률이 채워집니다.',
+        action: () => { consoleStep(4); moveCursor(840, 600); clickAt(840, 600); } },
+      { at: 54000,  label: 'STEP 4 · 결과 분리', text: '완료 직후 성공·실패가 즉시 분리되어 카드로 노출되고, 감사 로그가 자동 기록됩니다.',
+        action: () => { moveCursor(840, 360); } },
+
+      // 1:00 — 이력 + 상세
+      { at: 60000,  label: '03 · 이력',         text: '이력 화면 — 모든 발송 레코드 검색·필터.',
+        action: () => { navIframe('history'); hideCursor(); moveCursor(160, 340); clickAt(160, 340); } },
+      { at: 67000,  label: '03 · 상세 패널',    text: '행 클릭 시 우측 슬라이드인 상세 패널. 박민수 고객은 팩스 실패 후 이메일 자동대체로 성공 — 정책 엔진이 데이터에 반영된 모습입니다.' },
+
+      // 1:14 — 템플릿
+      { at: 74000,  label: '04 · 템플릿',       text: '템플릿 편집기 — 좌 목록 / 중 편집 / 우 라이브 PDF 프리뷰.',
+        action: () => { navIframe('templates'); moveCursor(160, 400); clickAt(160, 400); } },
+
+      // 1:22 — 아웃트로
+      { at: 82000,  label: 'OUTRO · 1:22',     text: '4개 화면 · 14주 일정 · 30분 미팅에서 더 자세히 다루겠습니다. 감사합니다.',
+        action: () => { navIframe('dashboard'); hideCursor(); } }];
+
+    let timeline_fired = new Set();
+
+    function tick() {
+      if (!playing) return;
+      const elapsed = Date.now() - startTime;
+      const pct = Math.min(100, (elapsed / TOTAL_MS) * 100);
+      progress.style.width = pct + '%';
+      timecode.textContent = `${fmt(elapsed)} / 1:30`;
+
+      // Find current and upcoming steps
+      let current = null;
+      for (const step of timeline) {
+        if (elapsed >= step.at && !timeline_fired.has(step.at)) {
+          timeline_fired.add(step.at);
+          if (step.action) try { step.action(); } catch (e) {}
+          setCaption(step.label, step.text);
+          current = step;
+        }
+      }
+
+      if (elapsed >= TOTAL_MS) {
+        playing = false;
+        document.getElementById('btn-play').textContent = '▶ 재생';
+        return;
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function play() {
+      if (playing) {
+        playing = false;
+        cancelAnimationFrame(rafId);
+        document.getElementById('btn-play').textContent = '▶ 재생';
+        recHint.classList.remove('show');
+        return;
+      }
+      // Reset
+      timeline_fired.clear();
+      navIframe('dashboard');
+      setTimeout(consoleResetWizard, 100);
+      progress.style.width = '0%';
+      hideCaption();
+      setTimeout(() => {
+        playing = true;
+        startTime = Date.now();
+        document.getElementById('btn-play').textContent = '⏸ 일시정지';
+        recHint.classList.add('show');
+        setTimeout(() => recHint.classList.remove('show'), 4000);
+        tick();
+      }, 300);
+    }
+
+    function restart() {
+      playing = false;
+      cancelAnimationFrame(rafId);
+      timeline_fired.clear();
+      navIframe('dashboard');
+      setTimeout(consoleResetWizard, 100);
+      progress.style.width = '0%';
+      timecode.textContent = '0:00 / 1:30';
+      hideCaption();
+      hideCursor();
+      document.getElementById('btn-play').textContent = '▶ 재생';
+    }
+
+    document.getElementById('btn-play').addEventListener('click', play);
+    document.getElementById('btn-restart').addEventListener('click', restart);
+
+    // Show initial caption after iframe loads
+    iframe.addEventListener('load', () => {
+      setTimeout(() => {
+        setCaption('READY', '▶ 재생 버튼을 눌러 1분 30초 자동 시연을 시작하세요. ⌘⇧5로 화면 녹화 가능.');
+      }, 800);
+    });
+  </script>
+</body>
+</html>
