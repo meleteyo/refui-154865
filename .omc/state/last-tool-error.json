@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"python3 -c \\\"\\nimport re\\nwith open('my/output/wishket-proposal/154865-고지서PDF다채널발송_proposal.md', encoding='utf-8') as f:\\n    content = f.read()\\nm = re.search(r'### 지원 내용\\\\n(.+?)\\\\n---', ...",
+  "error": "Exit code 1\nTraceback (most recent call last):\n  File \"<string>\", line 3, in <module>\nFileNotFoundError: [Errno 2] No such file or directory: 'my/output/wishket-proposal/154865-고지서PDF다채널발송_proposal.md'",
+  "timestamp": "2026-04-26T09:34:00.389Z",
+  "retry_count": 1
+}
